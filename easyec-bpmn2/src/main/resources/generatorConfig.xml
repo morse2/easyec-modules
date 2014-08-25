@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+    <context id="Depots" targetRuntime="MyBatis3">
+        <jdbcConnection driverClass="oracle.jdbc.driver.OracleDriver"
+                        connectionURL="jdbc:oracle:thin:@164.39.68.43:1521:tntprtl"
+                        userId="ivc"
+                        password="ivc"
+                />
+
+        <javaModelGenerator targetPackage="com.googlecode.easyec.modules.bpmn2.domain.impl"
+                            targetProject="src/main/java">
+
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <sqlMapGenerator targetPackage="com.googlecode.easyec.modules.bpmn2.dao"
+                         targetProject="src/main/resources">
+
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <javaClientGenerator type="XMLMAPPER"
+                             targetPackage="com.googlecode.easyec.modules.bpmn2.dao"
+                             targetProject="src/main/java">
+
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaClientGenerator>
+
+        <table tableName="BPM_HI_TASK_EXTRA"
+               domainObjectName="ExtraTaskObject"
+               enableCountByExample="false"
+               enableDeleteByExample="false"
+               enableSelectByExample="false"
+               enableUpdateByExample="false">
+
+            <columnOverride column="TASK_ASSIGNEE" property="assignee" javaType="java.lang.String" jdbcType="VARCHAR"/>
+            <columnOverride column="TASK_STATUS" property="status" javaType="java.lang.String" jdbcType="VARCHAR"/>
+            <columnOverride column="PROC_INST_ID" property="processInstanceId" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        </table>
+    </context>
+</generatorConfiguration>

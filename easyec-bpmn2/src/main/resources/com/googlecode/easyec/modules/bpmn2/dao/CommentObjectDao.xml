@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.CommentObjectImpl">
+        <result column="ID_" property="id" jdbcType="VARCHAR"/>
+        <result column="USER_ID_" property="userId" jdbcType="VARCHAR"/>
+        <result column="MESSAGE_" property="content" jdbcType="VARCHAR"/>
+        <result column="TYPE_" property="type" jdbcType="VARCHAR"/>
+        <result column="TIME_" property="createTime" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        HIC.ID_, HIC.USER_ID_, HIC.TYPE_, HIC.TIME_, HIC.MESSAGE_, HIC.TIME_
+    </sql>
+
+    <select id="selectApprovedCommentsByTaskId" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ACT_HI_COMMENT HIC
+        where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
+        and HIC.TYPE_ = 'BY_TASK_APPROVAL'
+        order by HIC.TIME_
+    </select>
+
+    <select id="selectApprovedCommentsByProcessInstanceId" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ACT_HI_COMMENT HIC
+        where HIC.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
+        and HIC.TYPE_ = 'BY_TASK_APPROVAL'
+        order by HIC.TIME_
+    </select>
+
+    <select id="selectAnnotatedCommentsByTaskId" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ACT_HI_COMMENT HIC
+        where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
+        and HIC.TYPE_ = 'BY_TASK_ANNOTATED'
+        order by HIC.TIME_
+    </select>
+</mapper>

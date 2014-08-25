@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:activiti="http://activiti.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             typeLanguage="http://www.w3.org/2001/XMLSchema"
+             expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://www.activiti.org/test">
+    <process id="myProcess" name="My process" isExecutable="true">
+        <startEvent id="startevent1" name="Start"/>
+        <endEvent id="endevent1" name="End"/>
+        <userTask id="task1" name="Audit1" activiti:assignee="kermit"/>
+        <userTask id="task2" name="Audit2" activiti:assignee="gonzo"/>
+        <userTask id="task3" name="Audit3" activiti:assignee="evans"/>
+
+        <sequenceFlow id="f1" sourceRef="startevent1" targetRef="task1"/>
+        <sequenceFlow id="_1" sourceRef="task1" targetRef="task2"/>
+        <sequenceFlow id="f4" sourceRef="task3" targetRef="endevent1"/>
+
+        <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"/>
+        <sequenceFlow id="flow1" sourceRef="task2" targetRef="exclusivegateway1"/>
+        <sequenceFlow id="_2_1" name="N" sourceRef="exclusivegateway1" targetRef="task1">
+            <conditionExpression>${processService.isRejected(processEntityId)}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="_2_2" name="Y" sourceRef="exclusivegateway1" targetRef="task3">
+            <conditionExpression>${processService.isApproved(processEntityId)}</conditionExpression>
+        </sequenceFlow>
+    </process>
+
+    <bpmndi:BPMNDiagram id="BPMNDiagram_myProcess">
+        <bpmndi:BPMNPlane bpmnElement="myProcess" id="BPMNPlane_myProcess">
+            <bpmndi:BPMNShape bpmnElement="startevent1" id="BPMNShape_startevent1">
+                <omgdc:Bounds height="35.0" width="35.0" x="110.0" y="150.0"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+                <omgdc:Bounds height="35.0" width="35.0" x="415.0" y="400.0"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="task1" id="BPMNShape_task1">
+                <omgdc:Bounds height="55.0" width="105.0" x="200.0" y="140.0"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="task2" id="BPMNShape_task2">
+                <omgdc:Bounds height="55.0" width="105.0" x="200.0" y="250.0"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="task3" id="BPMNShape_task3">
+                <omgdc:Bounds height="55.0" width="105.0" x="380.0" y="250.0"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="f1" id="BPMNEdge_f1">
+                <omgdi:waypoint x="145.0" y="167.0"/>
+                <omgdi:waypoint x="200.0" y="167.0"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="f2" id="BPMNEdge_f2">
+                <omgdi:waypoint x="252.0" y="195.0"/>
+                <omgdi:waypoint x="252.0" y="250.0"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="f3" id="BPMNEdge_f3">
+                <omgdi:waypoint x="305.0" y="277.0"/>
+                <omgdi:waypoint x="380.0" y="277.0"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="f4" id="BPMNEdge_f4">
+                <omgdi:waypoint x="432.0" y="305.0"/>
+                <omgdi:waypoint x="432.0" y="400.0"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

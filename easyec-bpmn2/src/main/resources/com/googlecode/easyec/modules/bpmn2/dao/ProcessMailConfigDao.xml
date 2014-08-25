@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.ProcessMailConfigDao">
+    <cache type="com.googlecode.easyec.spirit.mybatis.cache.CacheServiceCache"/>
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessMailConfigImpl">
+        <id column="UIDPK" property="uidPk" jdbcType="NUMERIC"/>
+        <result column="PROC_DEF_KEY" property="processKey" jdbcType="VARCHAR"/>
+        <result column="MAIL_FIRE_TYPE" property="fireType" jdbcType="VARCHAR"/>
+        <result column="MAIL_FILE_KEY" property="fileKey" jdbcType="VARCHAR"/>
+        <result column="MAIL_CLASS" property="mailClass" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Prefix_Column_List">
+        BPM.UIDPK, BPM.PROC_DEF_KEY, BPM.MAIL_FIRE_TYPE, BPM.MAIL_FILE_KEY, BPM.MAIL_CLASS
+    </sql>
+    <sql id="Base_Join_Tables">
+        FROM BPM_PROC_MAIL_CONF BPM
+        JOIN BPM_PROC_ENTITY BPE ON BPM.PROC_DEF_KEY = BPE.PROC_DEF_KEY
+    </sql>
+    <sql id="Search_Conditions">
+        <where>
+            <if test="processEntityId != null">
+                and BPE.UIDPK = #{processEntityId,jdbcType=NUMERIC}
+            </if>
+            <if test="fireType != null">
+                and BPM.MAIL_FIRE_TYPE = #{fireType,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Prefix_Column_List"/>
+        from BPM_PROC_MAIL_CONF BPM
+        where BPM.UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        DELETE FROM BPM_PROC_MAIL_CONF
+        WHERE UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </delete>
+    <insert id="insert" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessMailConfigImpl">
+        INSERT INTO BPM_PROC_MAIL_CONF
+        (UIDPK, PROC_DEF_KEY, MAIL_FIRE_TYPE, MAIL_FILE_KEY, MAIL_CLASS)
+        VALUES (#{uidPk,jdbcType=NUMERIC}, #{processKey,jdbcType=VARCHAR},
+                #{fireType,jdbcType=VARCHAR}, #{fileKey,jdbcType=VARCHAR},
+                #{mailClass,jdbcType=VARCHAR})
+    </insert>
+    <update id="updateByPrimaryKey"
+            parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessMailConfigImpl">
+        UPDATE BPM_PROC_MAIL_CONF
+        SET PROC_DEF_KEY   = #{processKey,jdbcType=VARCHAR},
+            MAIL_FIRE_TYPE = #{fireType,jdbcType=VARCHAR},
+            MAIL_FILE_KEY  = #{fileKey,jdbcType=VARCHAR},
+            MAIL_CLASS     = #{mailClass,jdbcType=VARCHAR}
+        WHERE UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </update>
+
+    <select id="find" parameterType="hashmap" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Prefix_Column_List"/>
+        <include refid="Base_Join_Tables"/>
+        <include refid="Search_Conditions"/>
+    </select>
+
+    <select id="count" parameterType="hashmap" resultType="long">
+        SELECT
+        count(distinct BPM.UIDPK)
+        <include refid="Base_Join_Tables"/>
+        <include refid="Search_Conditions"/>
+    </select>
+</mapper>

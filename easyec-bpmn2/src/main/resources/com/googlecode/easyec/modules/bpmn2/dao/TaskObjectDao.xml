@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.TaskObjectDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.TaskObjectImpl">
+        <id column="ID_" property="taskId" jdbcType="VARCHAR"/>
+        <result column="NAME_" property="taskName" jdbcType="VARCHAR"/>
+        <result column="ASSIGNEE_" property="assignee" jdbcType="VARCHAR"/>
+        <result column="OWNER_" property="owner" jdbcType="VARCHAR"/>
+        <result column="CREATE_TIME_" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="END_TIME_" property="endTime" jdbcType="TIMESTAMP"/>
+        <result column="FORM_KEY_" property="formKey" jdbcType="VARCHAR"/>
+        <result column="DELEGATION_" property="delegationState" jdbcType="VARCHAR"/>
+
+        <association property="processObject" column="PROC_INST_ID_"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao.selectByProcessInstanceId"
+                />
+
+        <collection property="approvedComments" column="ID_"
+                    select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectApprovedCommentsByTaskId"
+                />
+
+        <collection property="annotatedComments" column="ID_"
+                    select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectAnnotatedCommentsByTaskId"
+                />
+    </resultMap>
+
+    <sql id="TaskOnly_Col_List">
+        RES.ID_, RES.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_
+    </sql>
+    <sql id="Base_Column_List">
+        RES.ID_, RES.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_, RES.PRIORITY_, ENT.REQUEST_TIME
+    </sql>
+    <sql id="Historic_Column_List">
+        RES.ID_, RES.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.START_TIME_ AS CREATE_TIME_, RES.FORM_KEY_, RES.END_TIME_, RES.PRIORITY_
+    </sql>
+
+    <sql id="RU_Task_Join_Tables">
+        from ACT_RU_TASK RES
+        join ACT_HI_TASKINST HIS on HIS.ID_ = RES.ID_
+        join BPM_PROC_ENTITY ENT on RES.PROC_INST_ID_ = ENT.PROC_INST_ID
+        <if test="candidateUser != null or claimed != null">
+            join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_
+        </if>
+        <if test="businessKey != null or businessKeyLike != null">
+            join ACT_HI_PROCINST HIP on HIS.PROC_INST_ID_ = HIP.PROC_INST_ID_
+        </if>
+        <if test="administrator != null">
+            join BPM_USER_PROC_RELATION BUPR on BUPR.PROC_KEY = ENT.PROC_DEF_KEY
+            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BUPR.ROLE_CODE
+            and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
+        </if>
+    </sql>
+
+    <sql id="HI_Task_Join_Tables">
+        from ACT_HI_TASKINST RES
+        join BPM_PROC_ENTITY ENT on RES.PROC_INST_ID_ = ENT.PROC_INST_ID
+        <if test="candidateUser != null or claimed != null">
+            join ACT_HI_IDENTITYLINK I on I.TASK_ID_ = RES.ID_
+        </if>
+        <if test="businessKey != null or businessKeyLike != null">
+            join ACT_HI_PROCINST HIP on RES.PROC_INST_ID_ = HIP.PROC_INST_ID_
+        </if>
+        <if test="administrator != null">
+            join BPM_USER_PROC_RELATION BUPR on BUPR.PROC_KEY = ENT.PROC_DEF_KEY
+            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BUPR.ROLE_CODE
+            and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
+        </if>
+    </sql>
+
+    <sql id="Search_Conditions">
+        <if test="taskId != null">
+            and RES.ID_ = #{taskId,jdbcType=VARCHAR}
+        </if>
+        <if test="processDefinitionId != null">
+            and RES.PROC_DEF_ID_ = #{processDefinitionId,jdbcType=VARCHAR}
+        </if>
+        <if test="processDefinitionKey != null">
+            and ENT.PROC_DEF_KEY = #{processDefinitionKey,jdbcType=VARCHAR}
+        </if>
+        <if test="processInstanceId != null">
+            and RES.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
+        </if>
+        <if test="businessKey != null">
+            and HIP.BUSINESS_KEY_ = #{businessKey,jdbcType=VARCHAR}
+        </if>
+        <if test="businessKeyLike != null">
+            <bind name="_businessKeyLike" value="'%' + businessKeyLike + '%'"/>
+            and HIP.BUSINESS_KEY_ like #{_businessKeyLike,jdbcType=VARCHAR}
+        </if>
+        <if test="taskAssignee != null">
+            and RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+        </if>
+        <if test="administrator != null">
+            and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
+        </if>
+        <if test="candidateUser != null or claimed != null">
+            and I.TYPE_ = 'candidate'
+            <if test="candidateUser != null">
+                and I.USER_ID_ = #{candidateUser,jdbcType=VARCHAR}
+            </if>
+            <if test="claimed != null">
+                <choose>
+                    <when test="claimed">
+                        and RES.ASSIGNEE_ is not null
+                    </when>
+                    <otherwise>
+                        and RES.ASSIGNEE_ is null
+                    </otherwise>
+                </choose>
+            </if>
+        </if>
+        <if test="owner != null">
+            and RES.OWNER_ = #{owner,jdbcType=VARCHAR}
+        </if>
+        <if test="delegated != null">
+            and (
+            <if test="delegated">
+                <![CDATA[RES.DELEGATION_ <> null]]>
+            </if>
+            <choose>
+                <when test="delegatedOrResolved">or</when>
+                <otherwise>and</otherwise>
+            </choose>
+            <choose>
+                <when test="resolved">
+                    RES.DELEGATION_ = 'RESOLVED'
+                </when>
+                <otherwise>
+                    RES.DELEGATION_ = 'PENDING'
+                </otherwise>
+            </choose>
+            )
+        </if>
+        <if test="processStatus != null">
+            and ENT.PROC_STATUS = #{processStatus,jdbcType=VARCHAR}
+        </if>
+        <if test="applicant != null">
+            and ENT.CREATE_USER = #{applicant,jdbcType=VARCHAR}
+        </if>
+        <if test="rejected != null">
+            <choose>
+                <when test="rejected">
+                    and ENT.REJECTED = 1
+                </when>
+                <otherwise>
+                    and ENT.REJECTED = 0
+                </otherwise>
+            </choose>
+        </if>
+        <if test="requestTimeStart != null">
+            <![CDATA[and ENT.REQUEST_TIME >= #{requestTimeStart,jdbcType=TIMESTAMP}]]>
+        </if>
+        <if test="requestTimeEnd != null">
+            <![CDATA[and ENT.REQUEST_TIME <= #{requestTimeEnd,jdbcType=TIMESTAMP}]]>
+        </if>
+        <if test="finishTimeStart != null">
+            <![CDATA[and ENT.FINISH_TIME >= #{finishTimeStart,jdbcType=TIMESTAMP}]]>
+        </if>
+        <if test="finishTimeEnd != null">
+            <![CDATA[and ENT.FINISH_TIME <= #{finishTimeEnd,jdbcType=TIMESTAMP}]]>
+        </if>
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT distinct
+        <include refid="TaskOnly_Col_List"/>
+        FROM ACT_RU_TASK RES
+        join ACT_HI_TASKINST HIS on HIS.ID_ = RES.ID_
+        where RES.ID_ = #{taskId,jdbcType=VARCHAR}
+    </select>
+    <select id="find" parameterType="hashmap" resultMap="BaseResultMap">
+        select distinct
+        <include refid="Base_Column_List"/>
+        <include refid="RU_Task_Join_Tables"/>
+        <where>
+            <include refid="Search_Conditions"/>
+        </where>
+        ${orderBy}
+    </select>
+
+    <select id="countTasks" parameterType="hashmap" resultType="long">
+        select count(distinct RES.ID_)
+        <include refid="RU_Task_Join_Tables"/>
+        <where>
+            <include refid="Search_Conditions"/>
+        </where>
+    </select>
+
+    <select id="findHistoric" parameterType="hashmap" resultMap="BaseResultMap">
+        select distinct
+        <include refid="Historic_Column_List"/>, ENT.REQUEST_TIME
+        <include refid="HI_Task_Join_Tables"/>
+        <where>
+            and RES.END_TIME_ is not null
+            <include refid="Search_Conditions"/>
+        </where>
+        ${orderBy}
+    </select>
+
+    <select id="countHistoricTasks" parameterType="hashmap" resultType="long">
+        select count(distinct RES.ID_)
+        <include refid="HI_Task_Join_Tables"/>
+        <where>
+            and RES.END_TIME_ is not null
+            <include refid="Search_Conditions"/>
+        </where>
+    </select>
+
+    <select id="selectHistoric" parameterType="string" resultMap="BaseResultMap">
+        select distinct
+        <include refid="Historic_Column_List"/>
+        from ACT_HI_TASKINST RES
+        where RES.ID_ = #{taskId,jdbcType=VARCHAR}
+    </select>
+</mapper>

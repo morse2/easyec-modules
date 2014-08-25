@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <settings>
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <setting name="safeResultHandlerEnabled" value="false"/>
+        <setting name="configurationFactory" value="com.googlecode.easyec.spirit.mybatis.lazyload.SpringConfigurationFactory"/>
+    </settings>
+
+    <typeHandlers>
+        <typeHandler handler="com.googlecode.easyec.spirit.mybatis.handlers.LocaleTypeHandler"/>
+        <typeHandler handler="com.googlecode.easyec.spirit.mybatis.handlers.CurrencyTypeHandler"/>
+        <typeHandler handler="com.googlecode.easyec.spirit.mybatis.handlers.SerializableTypeHandler"/>
+    </typeHandlers>
+
+    <plugins>
+        <plugin interceptor="com.googlecode.easyec.spirit.mybatis.plugin.LazyLoadExtendResultSetHandlerPlugin"/>
+    </plugins>
+</configuration>

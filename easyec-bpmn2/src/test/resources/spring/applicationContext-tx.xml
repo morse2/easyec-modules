@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:dao="http://easyec.googlecode.com/schema/dao/util"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://easyec.googlecode.com/schema/dao/util http://easyec.googlecode.com/schema/dao/util/dao-1.0.xsd"
+       default-lazy-init="true">
+
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+          p:dataSource-ref="dataSource"/>
+
+    <aop:aspectj-autoproxy/>
+
+    <tx:annotation-driven/>
+
+    <tx:advice id="txAdvice">
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="query*" read-only="true"/>
+            <tx:method name="*" rollback-for="java.lang.Exception"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <!-- 事务拦截器 -->
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* com.*..*.service.*Service.*(..))" order="1"/>
+    </aop:config>
+
+    <!-- MyBatis SqlSession 执行类型探测拦截器 -->
+    <bean class="com.googlecode.easyec.spirit.mybatis.executor.support.SqlSessionTemplateDecisionInterceptor"
+          p:order="2"
+            />
+
+    <!-- MyBatis分页拦截器 -->
+    <bean class="com.googlecode.easyec.spirit.mybatis.paging.support.MybatisPagingInterceptor"
+          p:sqlSessionFactory-ref="sqlSessionFactory"
+          p:order="4"
+            />
+
+    <!-- 主键自动生成策略拦截器 -->
+    <dao:identifier-generator id="identifierGenerator" order="5">
+        <dao:sequence-generator-chain data-source="dataSource" converter="annotation"/>
+    </dao:identifier-generator>
+
+    <bean class="com.googlecode.easyec.modules.bpmn2.support.ProcessOperateInterceptor"
+          p:userTaskService-ref="userTaskService"
+          p:processService-ref="processService"
+          p:order="6"
+            />
+
+    <!-- MyBatis SqlSession 方法执行拦截器 -->
+    <bean class="com.googlecode.easyec.spirit.mybatis.executor.support.SqlSessionTemplateExecutor"
+          p:order="10"
+            />
+</beans>

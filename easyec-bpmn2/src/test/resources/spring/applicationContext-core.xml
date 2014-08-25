@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:paging="http://easyec.googlecode.com/schema/paging/mybatis"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://easyec.googlecode.com/schema/paging/mybatis http://easyec.googlecode.com/schema/paging/mybatis/paging.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+       http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd"
+       default-lazy-init="true">
+
+    <util:properties id="p_env" location="classpath:config/env.properties"/>
+
+    <context:annotation-config/>
+
+    <!-- 业务层Bean自动扫描配置 -->
+    <context:component-scan base-package="com.googlecode.easyec.modules">
+        <context:include-filter type="regex" expression="\.service.+\.impl\..+Impl$"/>
+    </context:component-scan>
+
+    <!-- JDBC数据源配置 -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy"
+          depends-on="springContext">
+        <property name="targetDataSource">
+            <bean parent="abstractDataSource"
+                  class="com.jolbox.bonecp.BoneCPDataSource"
+                  p:jdbcUrl="jdbc:oracle:thin:@192.168.1.12:1521:tnt"
+                  p:username="ivc"
+                  p:password="ivc"/>
+        </property>
+    </bean>
+
+    <bean id="abstractDataSource" abstract="true"
+          class="com.jolbox.bonecp.BoneCPDataSource"
+          destroy-method="close"
+          p:driverClass="oracle.jdbc.driver.OracleDriver"
+          p:idleConnectionTestPeriodInMinutes="120"
+          p:idleMaxAgeInMinutes="240"
+          p:minConnectionsPerPartition="1"
+          p:maxConnectionsPerPartition="5"
+          p:partitionCount="1"
+          p:acquireIncrement="1"
+          p:statementsCacheSize="25"
+          p:releaseHelperThreads="2"
+            />
+
+    <!-- Spring上下文工具类 -->
+    <bean id="springContext"
+          class="com.googlecode.easyec.spirit.web.utils.SpringContextUtils"
+            />
+
+    <!-- MyBatis分页自动化配置 -->
+    <paging:mybatis-config id="pageConfigurer" dialect="Oracle"/>
+
+    <!-- MyBatis自动化扫描配置 -->
+    <mybatis:scan base-package="com.googlecode.easyec.modules.**.dao" factory-ref="sqlSessionFactory"/>
+
+    <!-- MyBatis SqlSession工厂类配置 -->
+    <bean id="sqlSessionFactory"
+          name="sqlSessionFactory"
+          class="org.mybatis.spring.SqlSessionFactoryBean"
+          p:dataSource-ref="dataSource"
+          p:configLocation="classpath:mybatis/mybatis-config-mappings.xml"
+            />
+
+    <!-- 属性配置解析类 -->
+    <bean class="com.googlecode.easyec.spirit.web.utils.PropertyResolver"
+          init-method="init"
+          p:path="classpath:config/**/*.properties"
+            />
+
+    <!-- 委托业务接口代理实现 -->
+    <bean class="com.googlecode.easyec.spirit.mybatis.service.impl.DelegateServiceBeanPostProcessor"
+            />
+
+    <bean id="processService"
+          class="com.googlecode.easyec.modules.bpmn2.service.impl.ProcessServiceImpl"
+            />
+
+    <bean id="userTaskService"
+          class="com.googlecode.easyec.modules.bpmn2.service.impl.UserTaskServiceImpl"
+            />
+
+    <bean id="queryProcessService"
+          class="com.googlecode.easyec.modules.bpmn2.service.impl.QueryProcessServiceImpl"
+            />
+
+    <bean id="processDelegateService"
+          class="com.googlecode.easyec.bpmn2.test.service.impl.MyProcessDelegateServiceImpl"
+            />
+</beans>

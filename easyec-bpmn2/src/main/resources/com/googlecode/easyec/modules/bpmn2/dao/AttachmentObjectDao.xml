@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.AttachmentObjectDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.AttachmentObjectImpl">
+        <result column="ID_" property="id" jdbcType="VARCHAR"/>
+        <result column="USER_ID_" property="userId" jdbcType="VARCHAR"/>
+        <result column="NAME_" property="name" jdbcType="VARCHAR"/>
+        <result column="DESCRIPTION_" property="description" jdbcType="VARCHAR"/>
+        <result column="URL_" property="url" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        HIA.ID_, HIA.USER_ID_, HIA.NAME_, HIA.DESCRIPTION_, HIA.URL_, HIA.TYPE_
+    </sql>
+
+    <select id="selectByProcessInstanceId" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ACT_HI_ATTACHMENT HIA
+        where HIA.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
+        and HIA.TYPE_ = 'BY_PROC_ATTACHMENT'
+    </select>
+</mapper>

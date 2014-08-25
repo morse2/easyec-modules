@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessObjectImpl">
+        <id column="UIDPK" property="uidPk" jdbcType="NUMERIC"/>
+        <result column="PROC_DEF_ID" property="processDefinitionId" jdbcType="VARCHAR"/>
+        <result column="PROC_DEF_KEY" property="processDefinitionKey" jdbcType="VARCHAR"/>
+        <result column="PROC_INST_ID" property="processInstanceId" jdbcType="VARCHAR"/>
+        <result column="BUSINESS_KEY_" property="businessKey" jdbcType="VARCHAR"/>
+        <result column="PROC_STATUS" property="processStatus" jdbcType="VARCHAR"/>
+        <result column="TASK_NAME" property="taskName" jdbcType="VARCHAR"/>
+        <result column="REJECTED" property="rejected" jdbcType="BIT"/>
+        <result column="PARTIAL_REJECTED" property="partialRejected" jdbcType="BIT"/>
+        <result column="CREATE_USER" property="createUser" jdbcType="VARCHAR"/>
+        <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="REQUEST_TIME" property="requestTime" jdbcType="TIMESTAMP"/>
+        <result column="FINISH_TIME" property="finishTime" jdbcType="TIMESTAMP"/>
+        <result column="PROC_TYPE" property="type" jdbcType="VARCHAR"/>
+        <result column="PROC_PRIORITY" property="priority" jdbcType="INTEGER"/>
+
+        <collection property="approvedComments" column="PROC_INST_ID"
+                    select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectApprovedCommentsByProcessInstanceId"
+                />
+
+        <collection property="attachments" column="PROC_INST_ID"
+                    select="com.googlecode.easyec.modules.bpmn2.dao.AttachmentObjectDao.selectByProcessInstanceId"
+                />
+    </resultMap>
+    <sql id="Base_Column_List">
+        BPE.UIDPK, BPE.PROC_DEF_ID, BPE.PROC_DEF_KEY, BPE.PROC_INST_ID, BPE.PROC_STATUS, BPE.TASK_NAME, BPE.REJECTED,
+        BPE.PARTIAL_REJECTED, BPE.CREATE_USER, BPE.CREATE_TIME, BPE.REQUEST_TIME, BPE.FINISH_TIME, BPE.PROC_TYPE,
+        BPE.PROC_PRIORITY, HIS.BUSINESS_KEY_
+    </sql>
+    <sql id="Base_From_Table">
+        from BPM_PROC_ENTITY BPE left join ACT_HI_PROCINST HIS on BPE.PROC_INST_ID = HIS.PROC_INST_ID_
+    </sql>
+    <sql id="Join_Admin_SQL">
+        <if test="administrator != null">
+            join BPM_USER_PROC_RELATION BUPR on BUPR.PROC_KEY = BPE.PROC_DEF_KEY
+            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BUPR.ROLE_CODE
+            and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
+        </if>
+    </sql>
+
+    <sql id="Search_Conditions">
+        <where>
+            <if test="processDefinitionId != null">
+                and BPE.PROC_DEF_ID = #{processDefinitionId,jdbcType=VARCHAR}
+            </if>
+            <if test="processDefinitionKey != null">
+                and BPE.PROC_DEF_KEY = #{processDefinitionKey,jdbcType=VARCHAR}
+            </if>
+            <if test="processInstanceId != null">
+                and BPE.PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
+            </if>
+            <if test="businessKey != null">
+                and HIS.BUSINESS_KEY_ = #{businessKey,jdbcType=VARCHAR}
+            </if>
+            <if test="businessKeyLike != null">
+                <bind name="_businessKeyLike" value="'%' + businessKeyLike + '%'"/>
+                and HIS.BUSINESS_KEY_ like #{_businessKeyLike,jdbcType=VARCHAR}
+            </if>
+            <if test="status != null">
+                and BPE.PROC_STATUS = #{status,jdbcType=VARCHAR}
+            </if>
+            <if test="requestTimeStart != null">
+                <![CDATA[and BPE.REQUEST_TIME >= #{requestTimeStart,jdbcType=TIMESTAMP}]]>
+            </if>
+            <if test="requestTimeEnd != null">
+                <![CDATA[and BPE.REQUEST_TIME <= #{requestTimeEnd,jdbcType=TIMESTAMP}]]>
+            </if>
+            <if test="finishTimeStart != null">
+                <![CDATA[and BPE.FINISH_TIME >= #{finishTimeStart,jdbcType=TIMESTAMP}]]>
+            </if>
+            <if test="finishTimeEnd != null">
+                <![CDATA[and BPE.FINISH_TIME >= #{finishTimeEnd,jdbcType=TIMESTAMP}]]>
+            </if>
+            <if test="applicantId != null">
+                and BPE.CREATE_USER = #{applicantId,jdbcType=VARCHAR}
+            </if>
+            <if test="administrator != null">
+                and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
+            </if>
+            <if test="rejected != null">
+                <choose>
+                    <when test="rejected">
+                        <choose>
+                            <when test="withStatus != null and withStatus">
+                                and ((BPE.PROC_STATUS = 'IN_PROGRESS' and (BPE.REJECTED = '1'
+                                or BPE.PARTIAL_REJECTED = '1')) or (BPE.PROC_STATUS = 'ARCHIVED'
+                                and BPE.PARTIAL_REJECTED = '1'
+                                ))
+                            </when>
+                            <otherwise>
+                                and (BPE.REJECTED = '1'
+                                or BPE.PARTIAL_REJECTED = '1')
+                            </otherwise>
+                        </choose>
+                    </when>
+                    <otherwise>
+                        <![CDATA[and BPE.REJECTED <> '1'
+                    and BPE.PARTIAL_REJECTED <> '1']]>
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_PROC_ENTITY BPE
+        left join ACT_HI_PROCINST HIS on BPE.PROC_INST_ID = HIS.PROC_INST_ID_
+        where UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        DELETE FROM BPM_PROC_ENTITY
+        WHERE UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </delete>
+    <insert id="insert" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessObjectImpl">
+        INSERT INTO BPM_PROC_ENTITY
+        (UIDPK, PROC_DEF_ID, PROC_DEF_KEY, PROC_INST_ID, PROC_STATUS, TASK_NAME, REJECTED, PARTIAL_REJECTED,
+         CREATE_USER, CREATE_TIME, REQUEST_TIME, FINISH_TIME, PROC_TYPE, PROC_PRIORITY)
+        VALUES
+            (#{uidPk,jdbcType=NUMERIC}, #{processDefinitionId,jdbcType=VARCHAR},
+             #{processDefinitionKey,jdbcType=VARCHAR},
+             #{processInstanceId,jdbcType=VARCHAR}, #{processStatus,jdbcType=VARCHAR}, #{taskName,jdbcType=VARCHAR},
+             #{rejected,jdbcType=BIT}, #{partialRejected,jdbcType=BIT}, #{createUser,jdbcType=VARCHAR},
+             #{createTime,jdbcType=TIMESTAMP}, #{requestTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP},
+             #{type,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER})
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessObjectImpl">
+        UPDATE BPM_PROC_ENTITY
+        SET PROC_DEF_ID      = #{processDefinitionId,jdbcType=VARCHAR},
+            PROC_DEF_KEY     = #{processDefinitionKey,jdbcType=VARCHAR},
+            PROC_INST_ID     = #{processInstanceId,jdbcType=VARCHAR},
+            PROC_STATUS      = #{processStatus,jdbcType=VARCHAR},
+            TASK_NAME        = #{taskName,jdbcType=VARCHAR},
+            REJECTED         = #{rejected,jdbcType=BIT},
+            PARTIAL_REJECTED = #{partialRejected,jdbcType=BIT},
+            CREATE_USER      = #{createUser,jdbcType=VARCHAR},
+            CREATE_TIME      = #{createTime,jdbcType=TIMESTAMP},
+            REQUEST_TIME     = #{requestTime,jdbcType=TIMESTAMP},
+            FINISH_TIME      = #{finishTime,jdbcType=TIMESTAMP},
+            PROC_TYPE        = #{type,jdbcType=VARCHAR},
+            PROC_PRIORITY    = #{priority,jdbcType=INTEGER}
+        WHERE UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </update>
+
+    <select id="selectByProcessInstanceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        <include refid="Base_From_Table"/>
+        where BPE.PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="find" parameterType="hashmap" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        <include refid="Base_From_Table"/>
+        <include refid="Join_Admin_SQL"/>
+        <include refid="Search_Conditions"/>
+        ${orderBy}
+    </select>
+
+    <select id="count" parameterType="hashmap" resultType="long">
+        select
+        count(distinct BPE.UIDPK)
+        <include refid="Base_From_Table"/>
+        <include refid="Join_Admin_SQL"/>
+        <include refid="Search_Conditions"/>
+    </select>
+
+    <select id="selectCountByPK" parameterType="long" resultType="int">
+        SELECT
+            count(uidpk)
+        FROM BPM_PROC_ENTITY
+        WHERE uidpk = #{uidPk,jdbcType=NUMERIC}
+    </select>
+</mapper>

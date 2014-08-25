@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+       default-lazy-init="true">
+
+    <bean id="processEngineConfiguration"
+          class="org.activiti.spring.SpringProcessEngineConfiguration"
+          p:transactionManager-ref="transactionManager"
+          p:createDiagramOnDeploy="false"
+          p:dataSource-ref="dataSource"
+          p:jobExecutorActivate="false"
+            />
+
+    <!-- p:deploymentResources="classpath*:/bpmn/*.bpmn20.xml" -->
+
+    <bean id="processEngine"
+          class="org.activiti.spring.ProcessEngineFactoryBean"
+          p:processEngineConfiguration-ref="processEngineConfiguration"
+            />
+
+    <bean id="repositoryService" factory-bean="processEngine" factory-method="getRepositoryService"/>
+    <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService"/>
+    <bean id="runtimeService" factory-bean="processEngine" factory-method="getRuntimeService"/>
+    <bean id="taskService" factory-bean="processEngine" factory-method="getTaskService"/>
+    <bean id="formService" factory-bean="processEngine" factory-method="getFormService"/>
+</beans>
