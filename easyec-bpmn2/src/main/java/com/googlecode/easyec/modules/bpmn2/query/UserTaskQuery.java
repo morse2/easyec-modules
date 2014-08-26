@@ -125,6 +125,16 @@ public class UserTaskQuery extends AbstractQuery<UserTaskQuery> {
         return getSelf();
     }
 
+    public UserTaskQuery noAssignee() {
+        addSearchTerm("noAssignee", true);
+        return getSelf();
+    }
+
+    public UserTaskQuery inTaskPool() {
+        addSearchTerm("inTaskPool", true);
+        return getSelf();
+    }
+
     public UserTaskQuery orderByPriority(Sort.SortTypes direction) {
         addSort("RES.PRIORITY_", direction);
         return getSelf();

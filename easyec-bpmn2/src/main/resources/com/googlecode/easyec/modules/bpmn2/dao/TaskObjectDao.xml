@@ -93,6 +93,18 @@
         <if test="administrator != null">
             and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
         </if>
+        <if test="noAssignee != null and noAssignee">
+            and RES.ASSIGNEE_ is null and not exists(
+            select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
+            where i_.TASK_ID_ = RES.ID_ and i_.type_ = 'candidate'
+            )
+        </if>
+        <if test="inTaskPool != null and inTaskPool">
+            and RES.ASSIGNEE_ is null and exists(
+            select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
+            where i_.TASK_ID_ = RES.ID_ and i_.type_ = 'candidate'
+            )
+        </if>
         <if test="candidateUser != null or claimed != null">
             and I.TYPE_ = 'candidate'
             <if test="candidateUser != null">

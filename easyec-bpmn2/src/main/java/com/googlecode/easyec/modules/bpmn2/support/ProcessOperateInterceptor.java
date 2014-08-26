@@ -269,8 +269,11 @@ public final class ProcessOperateInterceptor implements Ordered {
             // 执行邮件发送
             _loopTasksForSendingMail(
                 _findNextTasks(task.getProcessObject().getProcessInstanceId()),
-                task, comment
+                FIRE_TYPE_TASK_ASSIGNED, task, comment
             );
+
+            // 邮件通知申请人
+            _doSendMail(task, task, comment, FIRE_TYPE_TASK_REJECTED);
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -455,24 +458,6 @@ public final class ProcessOperateInterceptor implements Ordered {
 
             // 执行邮件发送业务
             _doSendMail(newTask, oldTask, comment, fireType);
-        }
-    }
-
-    /* 循环任务列表并为之发送邮件 */
-    private void _loopTasksForSendingMail(List<TaskObject> newTasks, TaskObject oldTask, String comment) {
-        // 循环任务列表
-        for (TaskObject newTask : newTasks) {
-            // 判断任务处理人是否为空
-            if (isBlank(newTask.getAssignee())) {
-                logger.warn("Task has no assignee, so ignore sending mail. task id: [{}].", newTask.getTaskId());
-
-                continue;
-            }
-
-            // 新任务的处理人如果是流程申请人，则发送拒绝邮件；否则发送待审批邮件
-            if (newTask.getProcessObject().getCreateUser().equals(newTask.getAssignee())) {
-                _doSendMail(newTask, oldTask, comment, FIRE_TYPE_TASK_REJECTED);
-            } else _doSendMail(newTask, oldTask, comment, FIRE_TYPE_TASK_ASSIGNED);
         }
     }
 
