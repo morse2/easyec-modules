@@ -182,7 +182,7 @@ public class ProcessServiceImpl implements ProcessService {
             if (!taskList.isEmpty()) {
                 // 设置流程任务的优先级
                 for (Task task : taskList) {
-                    taskService.setPriority(task.getId(), po.getPriority());
+                    taskService.setPriority(task.getId(), entity.getPriority());
                 }
 
                 // 设置当前流程任务的节点名称
