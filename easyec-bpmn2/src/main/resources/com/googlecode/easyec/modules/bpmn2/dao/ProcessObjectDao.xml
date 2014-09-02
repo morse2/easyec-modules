@@ -63,6 +63,9 @@
             <if test="status != null">
                 and BPE.PROC_STATUS = #{status,jdbcType=VARCHAR}
             </if>
+            <if test="statusNot != null">
+                <![CDATA[and BPE.PROC_STATUS <> #{statusNot,jdbcType=VARCHAR}]]>
+            </if>
             <if test="requestTimeStart != null">
                 <![CDATA[and BPE.REQUEST_TIME >= #{requestTimeStart,jdbcType=TIMESTAMP}]]>
             </if>

@@ -89,6 +89,11 @@ public class ProcessQuery extends AbstractQuery<ProcessQuery> {
         return getSelf();
     }
 
+    public ProcessQuery statusNot(ProcessStatus status) {
+        addSearchTerm("statusNot", status);
+        return getSelf();
+    }
+
     public ProcessQuery orderByPriority(Sort.SortTypes direction) {
         addSort("BPE.PROC_PRIORITY", direction);
         return getSelf();
