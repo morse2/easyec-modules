@@ -1,8 +1,10 @@
 package com.googlecode.easyec.modules.bpmn2.service;
 
+import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.query.ProcessQuery;
+import com.googlecode.easyec.modules.bpmn2.query.TaskConsignQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskHistoricQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.spirit.dao.paging.Page;
@@ -40,6 +42,14 @@ public interface QueryProcessService {
     List<TaskObject> getHistoricTasks(UserTaskHistoricQuery query);
 
     long countHistoricTasks(UserTaskHistoricQuery query);
+
+    Page findTaskConsigns(TaskConsignQuery query);
+
+    Page findTaskConsigns(TaskConsignQuery query, int pageSize);
+
+    List<ExtraTaskConsign> getTaskConsigns(TaskConsignQuery query);
+
+    long countTaskConsigns(TaskConsignQuery query);
 
     TaskObject getHistoricTask(String taskId);
 

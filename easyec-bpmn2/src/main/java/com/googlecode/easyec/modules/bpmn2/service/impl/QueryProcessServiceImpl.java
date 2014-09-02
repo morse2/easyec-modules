@@ -1,10 +1,13 @@
 package com.googlecode.easyec.modules.bpmn2.service.impl;
 
+import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao;
 import com.googlecode.easyec.modules.bpmn2.dao.TaskObjectDao;
+import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.query.ProcessQuery;
+import com.googlecode.easyec.modules.bpmn2.query.TaskConsignQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskHistoricQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
@@ -23,6 +26,9 @@ import java.util.Map;
  * @author JunJie
  */
 public class QueryProcessServiceImpl extends EcService implements QueryProcessService {
+
+    @Resource
+    private ExtraTaskConsignDao extraTaskConsignDao;
 
     @Resource
     private ProcessObjectDao processObjectDao;
@@ -92,6 +98,26 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
     @Override
     public long countHistoricTasks(UserTaskHistoricQuery query) {
         return taskObjectDao.countHistoricTasks(extractQuery(query));
+    }
+
+    @Override
+    public Page findTaskConsigns(TaskConsignQuery query) {
+        return findTaskConsigns(query, getPageSize());
+    }
+
+    @Override
+    public Page findTaskConsigns(TaskConsignQuery query, int pageSize) {
+        return extraTaskConsignDao.find(createPage(query.getSearchFormBean(), pageSize));
+    }
+
+    @Override
+    public List<ExtraTaskConsign> getTaskConsigns(TaskConsignQuery query) {
+        return extraTaskConsignDao.find(extractQuery(query));
+    }
+
+    @Override
+    public long countTaskConsigns(TaskConsignQuery query) {
+        return extraTaskConsignDao.countTaskConsigns(extractQuery(query));
     }
 
     @Override

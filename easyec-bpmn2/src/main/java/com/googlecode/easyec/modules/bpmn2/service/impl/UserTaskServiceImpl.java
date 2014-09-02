@@ -1,14 +1,14 @@
 package com.googlecode.easyec.modules.bpmn2.service.impl;
 
+import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao;
-import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
-import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
-import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
-import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
+import com.googlecode.easyec.modules.bpmn2.domain.*;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.CommentObjectImpl;
+import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl;
+import com.googlecode.easyec.modules.bpmn2.query.TaskConsignQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
 import org.activiti.engine.HistoryService;
@@ -25,9 +25,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_FINISHED;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_PENDING;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_OTHERS;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus.ARCHIVED;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
@@ -39,6 +42,9 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 public class UserTaskServiceImpl implements UserTaskService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserTaskServiceImpl.class);
+
+    @Resource
+    private ExtraTaskConsignDao extraTaskConsignDao;
 
     @Resource
     private ExtraTaskObjectDao extraTaskObjectDao;
@@ -101,7 +107,19 @@ public class UserTaskServiceImpl implements UserTaskService {
     @Override
     public void delegateTask(TaskObject task, String userId) throws ProcessPersistentException {
         try {
+            ProcessObject po = task.getProcessObject();
             taskService.delegateTask(task.getTaskId(), userId);
+
+            // 记录此任务委托的历史信息
+            ExtraTaskConsign con = new ExtraTaskConsignImpl();
+            con.setConsignee(userId);
+            con.setTaskId(task.getTaskId());
+            con.setProcessInstanceId(po.getProcessInstanceId());
+            con.setStatus(TASK_CONSIGN_PENDING);
+            con.setCreateTime(new Date());
+
+            int i = extraTaskConsignDao.insert(con);
+            logger.debug("Effect rows of inserting BPM_HI_TASK_CONSIGN. [{}].", i);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
 
@@ -113,8 +131,32 @@ public class UserTaskServiceImpl implements UserTaskService {
     public void resolveTask(TaskObject task, CommentTypes type, String comment, Map<String, Object> variables)
     throws ProcessPersistentException {
         try {
+            // 创建批注
             createComment(task, type, comment);
+            // 标记任务已经解决
             taskService.resolveTask(task.getTaskId(), variables);
+            // 查询任务委托历史的记录
+            List<ExtraTaskConsign> list
+                = new TaskConsignQuery()
+                .taskId(task.getTaskId())
+                .consignee(task.getAssignee())
+                .status(TASK_CONSIGN_PENDING)
+                .list();
+
+            if (isNotEmpty(list)) {
+                // 标记任务委托历史记录已完成
+                logger.info(
+                    "To finish task of consignment. Task id: [" + task.getTaskId() + "], consignee: [" +
+                    task.getAssignee() + "]."
+                );
+
+                ExtraTaskConsign con = list.get(0);
+                con.setStatus(TASK_CONSIGN_FINISHED);
+                con.setFinishTime(new Date());
+
+                int i = extraTaskConsignDao.updateByPrimaryKey(con);
+                logger.debug("Effect rows of updating BPM_HI_TASK_CONSIGN. [{}].", i);
+            }
         } catch (ProcessPersistentException e) {
             throw e;
         } catch (Exception e) {

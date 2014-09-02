@@ -59,6 +59,7 @@ public class UserTaskHistoricQuery extends AbstractQuery<UserTaskHistoricQuery> 
     }
 
     public UserTaskHistoricQuery taskAssignee(String userId) {
+        removeSearchTerm("includeConsign");
         addSearchTerm("taskAssignee", userId);
         return getSelf();
     }
@@ -122,6 +123,12 @@ public class UserTaskHistoricQuery extends AbstractQuery<UserTaskHistoricQuery> 
 
     public UserTaskHistoricQuery unclaimedTask() {
         addSearchTerm("claimed", false);
+        return getSelf();
+    }
+
+    public UserTaskHistoricQuery includeConsign(String consignee) {
+        addSearchTerm("includeConsign", true);
+        addSearchTerm("taskAssignee", consignee);
         return getSelf();
     }
 

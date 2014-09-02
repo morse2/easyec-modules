@@ -65,6 +65,9 @@
             join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BUPR.ROLE_CODE
             and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
         </if>
+        <if test="includeConsign != null and includeConsign">
+            left join BPM_HI_TASK_CONSIGN BTC on RES.ID_ = BTC.TASK_ID
+        </if>
     </sql>
 
     <sql id="Search_Conditions">
@@ -87,9 +90,18 @@
             <bind name="_businessKeyLike" value="'%' + businessKeyLike + '%'"/>
             and HIP.BUSINESS_KEY_ like #{_businessKeyLike,jdbcType=VARCHAR}
         </if>
-        <if test="taskAssignee != null">
-            and RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
-        </if>
+        <choose>
+            <when test="includeConsign != null and includeConsign">
+                and (
+                RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+                or (BTC.CONSIGNEE = #{taskAssignee,jdbcType=VARCHAR}
+                and BTC.CONSIGN_STATUS = 'finished')
+                )
+            </when>
+            <when test="taskAssignee != null">
+                and RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+            </when>
+        </choose>
         <if test="administrator != null">
             and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
         </if>

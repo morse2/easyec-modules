@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl">
+        <id column="TASK_ID" property="taskId" jdbcType="VARCHAR"/>
+        <result column="PROC_INST_ID" property="processInstanceId" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE" property="consignee" jdbcType="VARCHAR"/>
+        <result column="CONSIGN_STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="FINISH_TIME" property="finishTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        TASK_ID, PROC_INST_ID, CONSIGNEE, CONSIGN_STATUS, CREATE_TIME, FINISH_TIME
+    </sql>
+    <sql id="Search_Condition">
+        <where>
+            <if test="taskId != null">
+                and TASK_ID = #{taskId,jdbcType=VARCHAR}
+            </if>
+            <if test="consignee != null">
+                and CONSIGNEE = #{consignee,jdbcType=VARCHAR}
+            </if>
+            <if test="processInstanceId != null">
+                and PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
+            </if>
+            <if test="status != null">
+                and CONSIGN_STATUS = #{status,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_HI_TASK_CONSIGN
+        where TASK_ID = #{taskId,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        DELETE FROM BPM_HI_TASK_CONSIGN
+        WHERE TASK_ID = #{taskId,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl">
+        INSERT INTO BPM_HI_TASK_CONSIGN
+        (TASK_ID, PROC_INST_ID, CONSIGNEE, CONSIGN_STATUS, CREATE_TIME, FINISH_TIME)
+        VALUES
+            (#{taskId,jdbcType=VARCHAR}, #{processInstanceId,jdbcType=VARCHAR}, #{consignee,jdbcType=VARCHAR},
+             #{status,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP})
+    </insert>
+    <update id="updateByPrimaryKey"
+            parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl">
+        UPDATE BPM_HI_TASK_CONSIGN
+        SET PROC_INST_ID   = #{processInstanceId,jdbcType=VARCHAR},
+            CONSIGNEE      = #{consignee,jdbcType=VARCHAR},
+            CONSIGN_STATUS = #{status,jdbcType=VARCHAR},
+            CREATE_TIME    = #{createTime,jdbcType=TIMESTAMP},
+            FINISH_TIME    = #{finishTime,jdbcType=TIMESTAMP}
+        WHERE TASK_ID = #{taskId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="find" parameterType="hashmap" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_HI_TASK_CONSIGN
+        <include refid="Search_Condition"/>
+    </select>
+
+    <select id="countTaskConsigns" parameterType="hashmap" resultType="long">
+        select count(distinct TASK_ID)
+        from BPM_HI_TASK_CONSIGN
+        <include refid="Search_Condition"/>
+    </select>
+</mapper>
