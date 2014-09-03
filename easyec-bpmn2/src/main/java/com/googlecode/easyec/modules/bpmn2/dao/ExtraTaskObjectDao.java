@@ -39,6 +39,14 @@ public interface ExtraTaskObjectDao {
     int updateByPrimaryKey(ExtraTaskObject record);
 
     /**
+     * 判断任务ID是否有扩展数据
+     *
+     * @param taskId 任务ID
+     * @return 该任务对应的记录数
+     */
+    long countByTaskId(String taskId);
+
+    /**
      * 统计已审批的任务列表中的从
      * 最近的一条被拒绝状态的任务
      * 算起，有无指定处理人已审批

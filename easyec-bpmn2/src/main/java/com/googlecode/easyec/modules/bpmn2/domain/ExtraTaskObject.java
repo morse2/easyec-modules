@@ -1,5 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.domain;
 
+import com.googlecode.easyec.modules.bpmn2.domain.ctrl.ExtraTaskObjectCtrl;
 import com.googlecode.easyec.spirit.domain.DomainModel;
 
 import java.util.Date;
@@ -7,25 +8,31 @@ import java.util.Date;
 /**
  * Created by JunJie on 2014/8/24.
  */
-public interface ExtraTaskObject extends DomainModel {
+public interface ExtraTaskObject extends DomainModel, ExtraTaskObjectCtrl {
+
+    /**
+     * 任务扩展表状态：未决，指未审批
+     */
+    String EXTRA_TASK_STATUS_PENDING  = "pending";
+    /**
+     * 任务扩展表状态：拒绝
+     */
+    String EXTRA_TASK_STATUS_REJECTED = "rejected";
+    /**
+     * 任务扩展表状态：通过
+     */
+    String EXTRA_TASK_STATUS_APPROVED = "approved";
 
     String getTaskId();
 
-    void setTaskId(String taskId);
-
     String getAssignee();
-
-    void setAssignee(String assignee);
 
     String getStatus();
 
-    void setStatus(String status);
-
     Date getCreateTime();
-
-    void setCreateTime(Date createTime);
 
     String getProcessInstanceId();
 
-    void setProcessInstanceId(String processInstanceId);
+    String getDelegatedUser();
+
 }

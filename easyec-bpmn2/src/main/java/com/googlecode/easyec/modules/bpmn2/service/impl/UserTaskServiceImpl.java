@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_FINISHED;
 import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_PENDING;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.*;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_OTHERS;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus.ARCHIVED;
@@ -202,6 +203,69 @@ public class UserTaskServiceImpl implements UserTaskService {
         return null;
     }
 
+    @Override
+    public void createExtraTask(ExtraTaskObject o) throws ProcessPersistentException {
+        String taskId = o.getTaskId();
+        logger.debug("Task id: [" + taskId + "] want to create or update.");
+
+        if (extraTaskObjectDao.countByTaskId(taskId) < 1) {
+            logger.info("No extra-task object was found, and create new one. Task id: [{}].", taskId);
+
+            // 设置新增的记录状态为pending
+            o.setStatus(EXTRA_TASK_STATUS_PENDING);
+
+            try {
+                int i = extraTaskObjectDao.insert(o);
+                logger.debug("Effect rows of inserting BPM_HI_TASK_EXTRA. [{}].", i);
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+
+                throw new ProcessPersistentException(e);
+            }
+        }
+    }
+
+    @Override
+    public void setAssignee(String taskId, String userId) throws ProcessPersistentException {
+        try {
+            taskService.setAssignee(taskId, userId);
+
+            ExtraTaskObject obj = extraTaskObjectDao.selectByPrimaryKey(taskId);
+            if (obj != null) {
+                obj.setAssignee(userId);
+
+                int i = extraTaskObjectDao.updateByPrimaryKey(obj);
+                logger.debug("Effect rows of updating BPM_HI_TASK_EXTRA. [{}].", i);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+
+            throw new ProcessPersistentException(e);
+        }
+    }
+
+    @Override
+    public void setDelegatedUser(String taskId, String delegatedUser) throws ProcessPersistentException {
+        ExtraTaskObject obj = extraTaskObjectDao.selectByPrimaryKey(taskId);
+        if (obj == null) {
+            throw new ProcessPersistentException(
+                "No Extra-task object was found. Please create extra-task firstly. Task id: [" + taskId + "]."
+            );
+        }
+
+        obj.setDelegatedUser(obj.getAssignee());
+        obj.setAssignee(delegatedUser);
+
+        try {
+            int i = extraTaskObjectDao.updateByPrimaryKey(obj);
+            logger.debug("Effect rows of updating BPM_HI_TASK_EXTRA. [{}].", i);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+
+            throw new ProcessPersistentException(e);
+        }
+    }
+
     /* 执行用户任务的完成操作 */
     private void _completeUserTask(TaskObject task, boolean reject, Map<String, Object> variables)
         throws ProcessPersistentException {
@@ -226,19 +290,26 @@ public class UserTaskServiceImpl implements UserTaskService {
         _completeUserTask(task, po, variables);
     }
 
-    /* 将当前任务储存进额外的任务表中 */
-    private void _createExtraHistoricTask(TaskObject task) throws ProcessPersistentException {
-        ProcessObject po = task.getProcessObject();
+    /* 更新已存在的任务历史记录的状态 */
+    private void _updateExtraHistoricTask(String taskId, ProcessObject po) throws ProcessPersistentException {
+        ExtraTaskObject task = extraTaskObjectDao.selectByPrimaryKey(taskId);
+        if (task == null) {
+            logger.warn("No extra-task object was found. Task id: [{}].", taskId);
 
-        ExtraTaskObject o = new ExtraTaskObjectImpl();
-        o.setTaskId(task.getTaskId());
-        o.setAssignee(task.getAssignee());
-        o.setProcessInstanceId(po.getProcessInstanceId());
-        o.setStatus(po.isRejected() ? "rejected" : "approved");
-        o.setCreateTime(task.getCreateTime());
+            return;
+        }
+
+        // 依据流程的拒绝状态来设置当前任务
+        // 历史记录是审批通过还是被拒绝
+        task.setStatus(
+            po.isRejected()
+            ? EXTRA_TASK_STATUS_REJECTED
+            : EXTRA_TASK_STATUS_APPROVED
+        );
 
         try {
-            extraTaskObjectDao.insert(o);
+            int i = extraTaskObjectDao.updateByPrimaryKey(task);
+            logger.debug("Effect rows of updating BPM_HI_TASK_EXTRA. [{}].", i);
         } catch (Exception e) {
             logger.error(e.getMessage());
 
@@ -251,8 +322,8 @@ public class UserTaskServiceImpl implements UserTaskService {
         throws ProcessPersistentException {
         try {
             processObjectDao.updateByPrimaryKey(po);
-            // 为当前任务创建审批状态
-            _createExtraHistoricTask(task);
+            // 更新存在的任务历史扩展表的状态
+            _updateExtraHistoricTask(task.getTaskId(), po);
             // TODO 未来支持可配置选择是否一人只需审批一次
             _recursiveCompleteUserTask(task.getTaskId(), po.getProcessInstanceId(), variables);
             // 获取下一个用户任务节点的名称
@@ -263,9 +334,18 @@ public class UserTaskServiceImpl implements UserTaskService {
 
             // TODO 未来支持分支任务的节点展现
             if (!taskList.isEmpty()) {
-                // 设置流程任务的优先级
                 for (Task current : taskList) {
+                    // 设置流程任务的优先级
                     taskService.setPriority(current.getId(), po.getPriority());
+
+                    // 新建当前任务的扩展信息
+                    ExtraTaskObject obj = new ExtraTaskObjectImpl();
+                    obj.setProcessInstanceId(po.getProcessInstanceId());
+                    obj.setCreateTime(current.getCreateTime());
+                    obj.setAssignee(current.getAssignee());
+                    obj.setTaskId(current.getId());
+
+                    createExtraTask(obj);
                 }
 
                 // 设置当前流程任务的节点名称

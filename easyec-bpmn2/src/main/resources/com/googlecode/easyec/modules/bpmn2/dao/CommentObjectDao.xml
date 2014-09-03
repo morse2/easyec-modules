@@ -7,10 +7,14 @@
         <result column="MESSAGE_" property="content" jdbcType="VARCHAR"/>
         <result column="TYPE_" property="type" jdbcType="VARCHAR"/>
         <result column="TIME_" property="createTime" jdbcType="VARCHAR"/>
+
+        <association property="extraTask" column="TASK_ID_"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao.selectByPrimaryKey"
+                />
     </resultMap>
 
     <sql id="Base_Column_List">
-        HIC.ID_, HIC.USER_ID_, HIC.TYPE_, HIC.TIME_, HIC.MESSAGE_, HIC.TIME_
+        HIC.ID_, HIC.TASK_ID_, HIC.USER_ID_, HIC.TYPE_, HIC.TIME_, HIC.MESSAGE_, HIC.TIME_
     </sql>
 
     <select id="selectApprovedCommentsByTaskId" parameterType="string" resultMap="BaseResultMap">

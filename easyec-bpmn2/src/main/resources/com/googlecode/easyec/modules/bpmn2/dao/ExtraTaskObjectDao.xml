@@ -4,12 +4,13 @@
     <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl">
         <id column="TASK_ID" property="taskId" jdbcType="VARCHAR"/>
         <result column="TASK_ASSIGNEE" property="assignee" jdbcType="VARCHAR"/>
+        <result column="DELEGATED_USER" property="delegatedUser" jdbcType="VARCHAR"/>
         <result column="TASK_STATUS" property="status" jdbcType="VARCHAR"/>
         <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="PROC_INST_ID" property="processInstanceId" jdbcType="VARCHAR"/>
     </resultMap>
     <sql id="Base_Column_List">
-        TASK_ID, TASK_ASSIGNEE, TASK_STATUS, CREATE_TIME, PROC_INST_ID
+        TASK_ID, TASK_ASSIGNEE, TASK_STATUS, CREATE_TIME, PROC_INST_ID, DELEGATED_USER
     </sql>
     <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
         select
@@ -23,22 +24,30 @@
     </delete>
     <insert id="insert" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl">
         INSERT INTO BPM_HI_TASK_EXTRA
-        (TASK_ID, TASK_ASSIGNEE, TASK_STATUS, CREATE_TIME, PROC_INST_ID)
+        (TASK_ID, TASK_ASSIGNEE, TASK_STATUS, CREATE_TIME, PROC_INST_ID, DELEGATED_USER)
         VALUES (
             #{taskId,jdbcType=VARCHAR}, #{assignee,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
-            #{createTime,jdbcType=TIMESTAMP}, #{processInstanceId,jdbcType=VARCHAR}
+            #{createTime,jdbcType=TIMESTAMP}, #{processInstanceId,jdbcType=VARCHAR}, #{delegatedUser,jdbcType=VARCHAR}
         )
     </insert>
     <update id="updateByPrimaryKey" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl">
         UPDATE BPM_HI_TASK_EXTRA
-        SET TASK_ASSIGNEE = #{assignee,jdbcType=VARCHAR},
-            TASK_STATUS   = #{status,jdbcType=VARCHAR},
-            CREATE_TIME   = #{createTime,jdbcType=TIMESTAMP},
-            PROC_INST_ID  = #{processInstanceId,jdbcType=VARCHAR}
+        SET TASK_ASSIGNEE  = #{assignee,jdbcType=VARCHAR},
+            DELEGATED_USER = #{delegatedUser,jdbcType=VARCHAR},
+            TASK_STATUS    = #{status,jdbcType=VARCHAR},
+            CREATE_TIME    = #{createTime,jdbcType=TIMESTAMP},
+            PROC_INST_ID   = #{processInstanceId,jdbcType=VARCHAR}
         WHERE TASK_ID = #{taskId,jdbcType=VARCHAR}
     </update>
+    <select id="countByTaskId" parameterType="string" resultType="long">
+        SELECT
+            count(TASK_ID)
+        FROM BPM_HI_TASK_EXTRA
+        WHERE TASK_ID = #{taskId,jdbcType=VARCHAR}
+    </select>
 
     <select id="countTasksAsReject" parameterType="hashmap" resultType="int">
+        <![CDATA[
         SELECT
             count(DISTINCT task_id)
         FROM BPM_HI_TASK_EXTRA
@@ -49,14 +58,19 @@
             WHERE TASK_STATUS = 'rejected'
         ) AND PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
               AND TASK_ASSIGNEE = #{assignee,jdbcType=VARCHAR}
+              AND TASK_STATUS <> 'pending'
+        ]]>
     </select>
 
     <select id="countTasksAsApprove" parameterType="hashmap" resultType="int">
+        <![CDATA[
         SELECT
             count(DISTINCT task_id)
         FROM BPM_HI_TASK_EXTRA
         WHERE TASK_STATUS = 'approved'
               AND PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
               AND TASK_ASSIGNEE = #{assignee,jdbcType=VARCHAR}
+              AND TASK_STATUS <> 'pending'
+        ]]>
     </select>
 </mapper>

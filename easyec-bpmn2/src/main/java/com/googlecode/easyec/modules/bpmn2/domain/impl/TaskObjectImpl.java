@@ -1,6 +1,7 @@
 package com.googlecode.easyec.modules.bpmn2.domain.impl;
 
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import org.activiti.engine.task.DelegationState;
@@ -26,6 +27,8 @@ public class TaskObjectImpl implements TaskObject {
 
     private DelegationState delegationState;
     private ProcessObject   processObject;
+
+    private ExtraTaskObject extraTask;
 
     /* 任务审批类型的备注列表 */
     private List<CommentObject> approvedComments  = new ArrayList<CommentObject>();
@@ -125,6 +128,15 @@ public class TaskObjectImpl implements TaskObject {
     @Override
     public void setFormKey(String formKey) {
         this.formKey = formKey;
+    }
+
+    @Override
+    public String getDelegatedUserId() {
+        return getExtraTask().getDelegatedUser();
+    }
+
+    public ExtraTaskObject getExtraTask() {
+        return extraTask;
     }
 
     public DelegationState getDelegationState() {

@@ -22,4 +22,6 @@ public interface CommentObject extends DomainModel, CommentObjectCtrl {
     CommentTypes getType();
 
     Date getCreateTime();
+
+    ExtraTaskObject getExtraTask();
 }

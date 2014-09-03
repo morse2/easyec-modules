@@ -11,6 +11,7 @@ public class ExtraTaskObjectImpl implements ExtraTaskObject {
     private String status;
     private Date   createTime;
     private String processInstanceId;
+    private String delegatedUser;
 
     @Override
     public String getTaskId() {
@@ -60,5 +61,15 @@ public class ExtraTaskObjectImpl implements ExtraTaskObject {
     @Override
     public void setProcessInstanceId(String processInstanceId) {
         this.processInstanceId = processInstanceId == null ? null : processInstanceId.trim();
+    }
+
+    @Override
+    public String getDelegatedUser() {
+        return delegatedUser;
+    }
+
+    @Override
+    public void setDelegatedUser(String delegatedUser) {
+        this.delegatedUser = delegatedUser;
     }
 }

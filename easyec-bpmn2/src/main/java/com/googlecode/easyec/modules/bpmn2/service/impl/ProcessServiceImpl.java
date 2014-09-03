@@ -2,7 +2,9 @@ package com.googlecode.easyec.modules.bpmn2.service.impl;
 
 import com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao;
 import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.keys.generator.BusinessKeyGenerator;
 import com.googlecode.easyec.modules.bpmn2.service.*;
 import org.activiti.engine.HistoryService;
@@ -44,6 +46,9 @@ public class ProcessServiceImpl implements ProcessService {
 
     @Resource
     private ProcessObjectDao processObjectDao;
+
+    @Resource
+    private UserTaskService userTaskService;
 
     // ----- Activiti运行时业务类
     @Resource
@@ -183,6 +188,15 @@ public class ProcessServiceImpl implements ProcessService {
                 // 设置流程任务的优先级
                 for (Task task : taskList) {
                     taskService.setPriority(task.getId(), entity.getPriority());
+
+                    // 新建当前任务的扩展信息
+                    ExtraTaskObject obj = new ExtraTaskObjectImpl();
+                    obj.setProcessInstanceId(po.getProcessInstanceId());
+                    obj.setCreateTime(task.getCreateTime());
+                    obj.setAssignee(task.getAssignee());
+                    obj.setTaskId(task.getId());
+
+                    userTaskService.createExtraTask(obj);
                 }
 
                 // 设置当前流程任务的节点名称

@@ -22,6 +22,10 @@
         <collection property="annotatedComments" column="ID_"
                     select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectAnnotatedCommentsByTaskId"
                 />
+
+        <association property="extraTask" column="ID_"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao.selectByPrimaryKey"
+                />
     </resultMap>
 
     <sql id="TaskOnly_Col_List">

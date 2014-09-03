@@ -37,4 +37,6 @@ public interface TaskObject extends DomainModel, TaskObjectCtrl {
     List<CommentObject> getAnnotatedComments();
 
     boolean isEnd();
+
+    String getDelegatedUserId();
 }

@@ -1,6 +1,7 @@
 package com.googlecode.easyec.modules.bpmn2.domain.impl;
 
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 
 import java.util.Date;
@@ -20,6 +21,8 @@ public class CommentObjectImpl implements CommentObject {
     private String       content;
     private CommentTypes type;
     private Date         createTime;
+
+    private ExtraTaskObject extraTask;
 
     @Override
     public String getId() {
@@ -69,5 +72,10 @@ public class CommentObjectImpl implements CommentObject {
     @Override
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    @Override
+    public ExtraTaskObject getExtraTask() {
+        return extraTask;
     }
 }
