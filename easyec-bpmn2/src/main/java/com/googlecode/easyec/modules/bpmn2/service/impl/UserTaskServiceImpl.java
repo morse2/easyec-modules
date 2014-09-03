@@ -60,13 +60,25 @@ public class UserTaskServiceImpl implements UserTaskService {
     private TaskService taskService;
 
     @Override
-    public void claimTask(String taskId, String userId) {
-        taskService.claim(taskId, userId);
+    public void claimTask(String taskId, String userId) throws ProcessPersistentException {
+        try {
+            // 获取当前的任务并交给自己处理
+            taskService.claim(taskId, userId);
+            // 设置当前任务扩展表中的处理人
+            _updateExtraTaskAssignee(taskId, userId);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+
+            throw new ProcessPersistentException(e);
+        }
     }
 
     @Override
     public void unclaimTask(String taskId) {
+        // 将当前任务放回任务池中
         taskService.unclaim(taskId);
+        // 设置当前任务扩展表中的处理人
+        _updateExtraTaskAssignee(taskId, null);
     }
 
     @Override
@@ -228,15 +240,10 @@ public class UserTaskServiceImpl implements UserTaskService {
     @Override
     public void setAssignee(String taskId, String userId) throws ProcessPersistentException {
         try {
+            // 更新当前任务的处理人
             taskService.setAssignee(taskId, userId);
-
-            ExtraTaskObject obj = extraTaskObjectDao.selectByPrimaryKey(taskId);
-            if (obj != null) {
-                obj.setAssignee(userId);
-
-                int i = extraTaskObjectDao.updateByPrimaryKey(obj);
-                logger.debug("Effect rows of updating BPM_HI_TASK_EXTRA. [{}].", i);
-            }
+            // 更新当前任务扩展表中的处理人
+            _updateExtraTaskAssignee(taskId, userId);
         } catch (Exception e) {
             logger.error(e.getMessage());
 
@@ -288,6 +295,17 @@ public class UserTaskServiceImpl implements UserTaskService {
         po.setPartialRejected(partialReject);
         // 完成流程当前任务的操作
         _completeUserTask(task, po, variables);
+    }
+
+    /* 更新任务扩展表中的处理人 */
+    private void _updateExtraTaskAssignee(String taskId, String userId) {
+        ExtraTaskObject obj = extraTaskObjectDao.selectByPrimaryKey(taskId);
+        if (obj != null) {
+            obj.setAssignee(userId);
+
+            int i = extraTaskObjectDao.updateByPrimaryKey(obj);
+            logger.debug("Effect rows of updating BPM_HI_TASK_EXTRA. [{}].", i);
+        }
     }
 
     /* 更新已存在的任务历史记录的状态 */

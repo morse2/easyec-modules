@@ -18,6 +18,10 @@ import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.getBean;
  */
 public class UserTaskHistoricQuery extends AbstractQuery<UserTaskHistoricQuery> {
 
+    public UserTaskHistoricQuery() {
+        addSearchTerm("hasEndTime", true);
+    }
+
     public UserTaskHistoricQuery processDefinitionId(String processDefinitionId) {
         addSearchTerm("processDefinitionId", processDefinitionId);
         return getSelf();

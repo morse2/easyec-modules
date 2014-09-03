@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public interface UserTaskService {
 
-    void claimTask(String taskId, String userId);
+    void claimTask(String taskId, String userId) throws ProcessPersistentException;
 
     void unclaimTask(String taskId);
 

@@ -15,16 +15,16 @@
                      select="com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao.selectByProcessInstanceId"
                 />
 
+        <association property="extraTask" column="ID_"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao.selectByPrimaryKey"
+                />
+
         <collection property="approvedComments" column="ID_"
                     select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectApprovedCommentsByTaskId"
                 />
 
         <collection property="annotatedComments" column="ID_"
                     select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectAnnotatedCommentsByTaskId"
-                />
-
-        <association property="extraTask" column="ID_"
-                     select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao.selectByPrimaryKey"
                 />
     </resultMap>
 
@@ -97,13 +97,19 @@
         <choose>
             <when test="includeConsign != null and includeConsign">
                 and (
-                RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
-                or (BTC.CONSIGNEE = #{taskAssignee,jdbcType=VARCHAR}
+                (RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+                <if test="hasEndTime != null and hasEndTime">
+                    and RES.END_TIME_ is not null
+                </if>
+                ) or (BTC.CONSIGNEE = #{taskAssignee,jdbcType=VARCHAR}
                 and BTC.CONSIGN_STATUS = 'finished')
                 )
             </when>
             <when test="taskAssignee != null">
                 and RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+                <if test="hasEndTime != null and hasEndTime">
+                    and RES.END_TIME_ is not null
+                </if>
             </when>
         </choose>
         <if test="administrator != null">
@@ -219,7 +225,6 @@
         <include refid="Historic_Column_List"/>, ENT.REQUEST_TIME
         <include refid="HI_Task_Join_Tables"/>
         <where>
-            and RES.END_TIME_ is not null
             <include refid="Search_Conditions"/>
         </where>
         ${orderBy}
@@ -229,7 +234,6 @@
         select count(distinct RES.ID_)
         <include refid="HI_Task_Join_Tables"/>
         <where>
-            and RES.END_TIME_ is not null
             <include refid="Search_Conditions"/>
         </where>
     </select>
