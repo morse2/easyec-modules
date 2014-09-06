@@ -195,12 +195,30 @@ public final class ProcessOperateInterceptor implements Ordered {
         argNames = "task,comment,variables"
     )
     public void afterApprove(TaskObject task, String comment, Map<String, Object> variables) throws Throwable {
+        afterApprove(task, comment, variables, true);
+    }
+
+    /**
+     * 审批通过的后置方法
+     *
+     * @param task      任务实体对象
+     * @param comment   审批内容
+     * @param variables 任务参数
+     * @param commented 标识是否需要创建备注
+     * @throws Throwable
+     */
+    @After(
+        value = "execution(* com.*..*.service.*Service.approve(..)) && args(task,comment,variables,commented,..)",
+        argNames = "task,comment,variables,commented"
+    )
+    public void afterApprove(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+        throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug("Prepare to approve this task. Task id: [{}].", task.getTaskId());
         }
 
         try {
-            userTaskService.approveTask(task, comment, variables);
+            userTaskService.approveTask(task, comment, variables, commented);
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -231,8 +249,26 @@ public final class ProcessOperateInterceptor implements Ordered {
         argNames = "task,comment,variables"
     )
     public void afterReject(TaskObject task, String comment, Map<String, Object> variables) throws Throwable {
+        afterReject(task, comment, variables, true);
+    }
+
+    /**
+     * 拒绝任务的后置方法。
+     *
+     * @param task      任务实体对象
+     * @param comment   拒绝内容
+     * @param variables 任务参数
+     * @param commented 标识是否需要创建备注
+     * @throws Throwable
+     */
+    @After(
+        value = "execution(* com.*..*.service.*Service.reject(..)) && args(task,comment,variables,commented,..)",
+        argNames = "task,comment,variables,commented"
+    )
+    public void afterReject(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+        throws Throwable {
         try {
-            userTaskService.rejectTask(task, comment, variables);
+            userTaskService.rejectTask(task, comment, variables, commented);
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -263,8 +299,26 @@ public final class ProcessOperateInterceptor implements Ordered {
         argNames = "task,comment,variables"
     )
     public void afterPartialReject(TaskObject task, String comment, Map<String, Object> variables) throws Throwable {
+        afterPartialReject(task, comment, variables, true);
+    }
+
+    /**
+     * 部分拒绝任务的后置方法。
+     *
+     * @param task      任务实体对象
+     * @param comment   拒绝内容
+     * @param variables 任务参数
+     * @param commented 标识是否需要创建备注
+     * @throws Throwable
+     */
+    @After(
+        value = "execution(* com.*..*.service.*Service.rejectPartially(..)) && args(task,comment,variables,commented,..)",
+        argNames = "task,comment,variables,commented"
+    )
+    public void afterPartialReject(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+        throws Throwable {
         try {
-            userTaskService.rejectTaskPartially(task, comment, variables);
+            userTaskService.rejectTaskPartially(task, comment, variables, commented);
 
             // 执行邮件发送
             _loopTasksForSendingMail(

@@ -87,9 +87,20 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
+    public void approveTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException {
+        approveTask(task, comment, null, commented);
+    }
+
+    @Override
     public void approveTask(TaskObject task, String comment, Map<String, Object> variables)
     throws ProcessPersistentException {
-        createComment(task, BY_TASK_APPROVAL, comment);
+        approveTask(task, comment, variables, true);
+    }
+
+    @Override
+    public void approveTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+    throws ProcessPersistentException {
+        if (commented) createComment(task, BY_TASK_APPROVAL, comment);
         _completeUserTask(task, false, variables);
     }
 
@@ -99,9 +110,20 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
+    public void rejectTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException {
+        rejectTask(task, comment, null, commented);
+    }
+
+    @Override
     public void rejectTask(TaskObject task, String comment, Map<String, Object> variables)
     throws ProcessPersistentException {
-        createComment(task, BY_TASK_APPROVAL, comment);
+        rejectTask(task, comment, variables, true);
+    }
+
+    @Override
+    public void rejectTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+    throws ProcessPersistentException {
+        if (commented) createComment(task, BY_TASK_APPROVAL, comment);
         _completeUserTask(task, true, false, variables);
     }
 
@@ -111,9 +133,21 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
+    public void rejectTaskPartially(TaskObject task, String comment, boolean commented)
+    throws ProcessPersistentException {
+        rejectTaskPartially(task, comment, null, commented);
+    }
+
+    @Override
     public void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables)
     throws ProcessPersistentException {
-        createComment(task, BY_TASK_APPROVAL, comment);
+        rejectTaskPartially(task, comment, variables, true);
+    }
+
+    @Override
+    public void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+    throws ProcessPersistentException {
+        if (commented) createComment(task, BY_TASK_APPROVAL, comment);
         _completeUserTask(task, false, true, variables);
     }
 

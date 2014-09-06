@@ -20,15 +20,31 @@ public interface UserTaskService {
 
     void approveTask(TaskObject task, String comment) throws ProcessPersistentException;
 
+    void approveTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException;
+
     void approveTask(TaskObject task, String comment, Map<String, Object> variables) throws ProcessPersistentException;
+
+    void approveTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+    throws ProcessPersistentException;
 
     void rejectTask(TaskObject task, String comment) throws ProcessPersistentException;
 
+    void rejectTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException;
+
     void rejectTask(TaskObject task, String comment, Map<String, Object> variables) throws ProcessPersistentException;
+
+    void rejectTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+    throws ProcessPersistentException;
 
     void rejectTaskPartially(TaskObject task, String comment) throws ProcessPersistentException;
 
+    void rejectTaskPartially(TaskObject task, String comment, boolean commented)
+    throws ProcessPersistentException;
+
     void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables) throws ProcessPersistentException;
+
+    void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
+    throws ProcessPersistentException;
 
     void delegateTask(TaskObject task, String userId) throws ProcessPersistentException;
 
