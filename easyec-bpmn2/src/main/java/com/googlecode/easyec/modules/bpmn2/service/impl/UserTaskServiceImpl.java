@@ -343,7 +343,7 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 更新已存在的任务历史记录的状态 */
-    private void _updateExtraHistoricTask(String taskId, ProcessObject po) throws ProcessPersistentException {
+    private void _updateExtraHistoricTask(String taskId, boolean rejected) throws ProcessPersistentException {
         ExtraTaskObject task = extraTaskObjectDao.selectByPrimaryKey(taskId);
         if (task == null) {
             logger.warn("No extra-task object was found. Task id: [{}].", taskId);
@@ -354,7 +354,7 @@ public class UserTaskServiceImpl implements UserTaskService {
         // 依据流程的拒绝状态来设置当前任务
         // 历史记录是审批通过还是被拒绝
         task.setStatus(
-            po.isRejected()
+            rejected
             ? EXTRA_TASK_STATUS_REJECTED
             : EXTRA_TASK_STATUS_APPROVED
         );
@@ -374,10 +374,8 @@ public class UserTaskServiceImpl implements UserTaskService {
         throws ProcessPersistentException {
         try {
             processObjectDao.updateByPrimaryKey(po);
-            // 更新存在的任务历史扩展表的状态
-            _updateExtraHistoricTask(task.getTaskId(), po);
             // TODO 未来支持可配置选择是否一人只需审批一次
-            _recursiveCompleteUserTask(task.getTaskId(), po.getProcessInstanceId(), variables);
+            _recursiveCompleteUserTask(task.getTaskId(), po, variables);
             // 获取下一个用户任务节点的名称
             List<Task> taskList
                 = taskService.createTaskQuery()
@@ -437,9 +435,15 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 递归完成用户任务的方法 */
-    private void _recursiveCompleteUserTask(String taskId, String processInstanceId, Map<String, Object> variables) {
+    private void _recursiveCompleteUserTask(String taskId, ProcessObject po, Map<String, Object> variables)
+        throws ProcessPersistentException {
+        // 获取流程实例ID
+        String processInstanceId = po.getProcessInstanceId();
+
         // 继续流程的执行
         taskService.complete(taskId, variables);
+        // 更新存在的任务历史扩展表的状态
+        _updateExtraHistoricTask(taskId, po.isRejected());
         // 查询下个节点的任务的审批人是否在历史任务中已审批过
         List<Task> taskList
             = taskService.createTaskQuery()
@@ -453,16 +457,34 @@ public class UserTaskServiceImpl implements UserTaskService {
                 continue;
             }
 
+            /*
+             * 下面情况系统将忽略自动审批功能
+             * 1. 流程当前状态是被拒绝的
+             * 2. 当前任务的处理人是该流程的申请人
+             */
+            if (po.isRejected() && task.getAssignee().equals(po.getCreateUser())) {
+                logger.info(
+                    "The process is rejected and task assignee is equals with process applicant. So ignore approve logic."
+                );
+
+                continue;
+            }
+
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("processInstanceId", processInstanceId);
             params.put("assignee", task.getAssignee());
 
             // 如果有历史审批，则系统帮助其自动审批任务
-            if (extraTaskObjectDao.countTasksAsReject(params) > 0 ||
-                extraTaskObjectDao.countTasksAsApprove(params) > 0) {
+            if (extraTaskObjectDao.countAsReject(processInstanceId) > 0) {
+                if (extraTaskObjectDao.countTasksAsReject(params) > 0) {
+                    logger.info("The assignee has approved historic tasks. Assignee: [{}].", task.getAssignee());
+
+                    _recursiveCompleteUserTask(task.getId(), po, variables);
+                }
+            } else if (extraTaskObjectDao.countTasksAsApprove(params) > 0) {
                 logger.info("The assignee has approved historic tasks. Assignee: [{}].", task.getAssignee());
 
-                _recursiveCompleteUserTask(task.getId(), processInstanceId, variables);
+                _recursiveCompleteUserTask(task.getId(), po, variables);
             }
         }
     }

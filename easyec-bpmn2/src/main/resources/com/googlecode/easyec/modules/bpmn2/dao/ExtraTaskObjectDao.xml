@@ -46,6 +46,14 @@
         WHERE TASK_ID = #{taskId,jdbcType=VARCHAR}
     </select>
 
+    <select id="countAsReject" parameterType="string" resultType="int">
+        SELECT
+            count(task_id)
+        FROM BPM_HI_TASK_EXTRA
+        WHERE TASK_STATUS = 'rejected'
+              AND PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
+    </select>
+
     <select id="countTasksAsReject" parameterType="hashmap" resultType="int">
         <![CDATA[
         SELECT

@@ -39,6 +39,14 @@ public interface ExtraTaskObjectDao {
     int updateByPrimaryKey(ExtraTaskObject record);
 
     /**
+     * 统计给定的流程实例ID下是否有拒绝过的审批
+     *
+     * @param processInstanceId 流程实例ID
+     * @return 拒绝过的审批数量
+     */
+    int countAsReject(String processInstanceId);
+
+    /**
      * 判断任务ID是否有扩展数据
      *
      * @param taskId 任务ID
