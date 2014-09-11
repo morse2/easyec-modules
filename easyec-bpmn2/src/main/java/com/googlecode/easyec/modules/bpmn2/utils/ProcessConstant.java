@@ -16,4 +16,9 @@ public final class ProcessConstant {
      * 申请人ID
      */
     public static final String APPLICANT_ID = "applicantId";
+
+    /**
+     * 流程处理进度的百分比
+     */
+    public static final String PROCESS_PERCENT = "processPercent";
 }
