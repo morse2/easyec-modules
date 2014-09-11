@@ -52,7 +52,7 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
 
     @Override
     public List<ProcessObject> getRequests(ProcessQuery query) {
-        return processObjectDao.find(extractQuery(null));
+        return processObjectDao.find(extractQuery(query));
     }
 
     @Override

@@ -102,6 +102,30 @@ public final class ProcessOperateInterceptor implements Ordered {
     }
 
     /**
+     * 执行撤销流程实例的后置方法
+     *
+     * @param entity 流程实体对象
+     * @throws Throwable
+     */
+    @After(
+        value = "execution(* com.*..*.service.*Service.revoke(..)) && args(entity,reason,..)",
+        argNames = "entity,reason"
+    )
+    public void afterRevoke(ProcessObject entity, String reason) throws Throwable {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Prepare to revoke process. Instance id: [{}].", entity.getProcessInstanceId());
+        }
+
+        try {
+            processService.revokeProcess(entity, reason);
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
+    /**
      * 执行预创建流程数据的后置方法。
      *
      * @param entity 流程实体对象

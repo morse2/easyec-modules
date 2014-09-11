@@ -135,6 +135,23 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
+    public void revokeProcess(ProcessObject po, String reason) throws ProcessPersistentException {
+        try {
+            // 删除流程实例
+            runtimeService.deleteProcessInstance(po.getProcessInstanceId(), reason);
+
+            // 设置当前流程状态
+            po.setProcessStatus(REVOKED);
+            // 更新当前流程实体对象
+            processObjectDao.updateByPrimaryKey(po);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+
+            throw new ProcessPersistentException(e);
+        }
+    }
+
+    @Override
     public void startProcess(ProcessObject entity) throws ProcessPersistentException {
         startProcess(entity, null);
     }

@@ -18,5 +18,9 @@ public enum ProcessStatus {
     /**
      * 表示当前流程状态为已归档
      */
-    ARCHIVED
+    ARCHIVED,
+    /**
+     * 表示当前流程状态为撤销
+     */
+    REVOKED
 }
