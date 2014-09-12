@@ -444,6 +444,14 @@ public class UserTaskServiceImpl implements UserTaskService {
         taskService.complete(taskId, variables);
         // 更新存在的任务历史扩展表的状态
         _updateExtraHistoricTask(taskId, po.isRejected());
+
+        // 如果当前任务是被拒绝的，那么系统将跳过自动审批的任务逻辑
+        if (po.isRejected()) {
+            logger.info("The process is rejected, so system won't check next tasks.");
+
+            return;
+        }
+
         // 查询下个节点的任务的审批人是否在历史任务中已审批过
         List<Task> taskList
             = taskService.createTaskQuery()
@@ -457,14 +465,10 @@ public class UserTaskServiceImpl implements UserTaskService {
                 continue;
             }
 
-            /*
-             * 下面情况系统将忽略自动审批功能
-             * 1. 流程当前状态是被拒绝的
-             * 2. 当前任务的处理人是该流程的申请人
-             */
-            if (po.isRejected() && task.getAssignee().equals(po.getCreateUser())) {
+            // 当前任务的处理人是该流程的申请人，则忽略自动审批逻辑
+            if (task.getAssignee().equals(po.getCreateUser())) {
                 logger.info(
-                    "The process is rejected and task assignee is equals with process applicant. So ignore approve logic."
+                    "The task assignee is equals with process applicant. So ignore approve logic."
                 );
 
                 continue;
