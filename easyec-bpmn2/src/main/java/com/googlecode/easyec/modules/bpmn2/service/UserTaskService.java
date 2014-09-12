@@ -2,6 +2,7 @@ package com.googlecode.easyec.modules.bpmn2.service;
 
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 
@@ -51,6 +52,9 @@ public interface UserTaskService {
     void resolveTask(TaskObject task, CommentTypes type, String comment, Map<String, Object> variables) throws ProcessPersistentException;
 
     CommentObject createComment(TaskObject task, CommentTypes type, String comment) throws ProcessPersistentException;
+
+    CommentObject createComment(ProcessObject po, CommentTypes type, String comment)
+    throws ProcessPersistentException;
 
     void createExtraTask(ExtraTaskObject o) throws ProcessPersistentException;
 

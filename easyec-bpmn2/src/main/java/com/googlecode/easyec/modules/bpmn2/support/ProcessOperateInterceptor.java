@@ -30,6 +30,8 @@ import java.util.Map;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_ASSIGNED;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_REJECTED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
+import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
+import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_APPLICANT_SUBMIT;
 import static org.activiti.engine.impl.identity.Authentication.getAuthenticatedUserId;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -177,6 +179,8 @@ public final class ProcessOperateInterceptor implements Ordered {
             ret = jp.proceed(jp.getArgs());
             // 启动流程
             processService.startProcess(entity, params);
+            // 为申请人默认创建一条备注
+            userTaskService.createComment(entity, BY_TASK_APPROVAL, I18_APPLICANT_SUBMIT);
             // 添加附件
             List<AttachmentObject> attachments = entity.getAttachments();
             for (AttachmentObject attachment : attachments) {

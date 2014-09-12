@@ -216,37 +216,13 @@ public class UserTaskServiceImpl implements UserTaskService {
     @Override
     public CommentObject createComment(TaskObject task, CommentTypes type, String comment)
     throws ProcessPersistentException {
-        if (isNotBlank(comment)) {
-            CommentTypes thisType = type;
-            if (thisType == null) {
-                thisType = BY_OTHERS;
-            }
+        return _createComment(task.getTaskId(), task.getProcessObject().getProcessInstanceId(), type, comment);
+    }
 
-            try {
-                Comment c = taskService.addComment(
-                    task.getTaskId(),
-                    task.getProcessObject().getProcessInstanceId(),
-                    thisType.name(),
-                    comment
-                );
-
-                if (c != null) {
-                    CommentObject obj = new CommentObjectImpl();
-                    obj.setCreateTime(c.getTime());
-                    obj.setUserId(c.getUserId());
-                    obj.setContent(comment);
-                    obj.setType(thisType);
-
-                    return obj;
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-
-                throw new ProcessPersistentException(e);
-            }
-        }
-
-        return null;
+    @Override
+    public CommentObject createComment(ProcessObject po, CommentTypes type, String comment)
+    throws ProcessPersistentException {
+        return _createComment(null, po.getProcessInstanceId(), type, comment);
     }
 
     @Override
@@ -307,6 +283,42 @@ public class UserTaskServiceImpl implements UserTaskService {
         }
     }
 
+    /* 创建备注的默认方法 */
+    private CommentObject _createComment(String taskId, String processInstanceId, CommentTypes type, String comment)
+        throws ProcessPersistentException {
+        if (isNotBlank(comment)) {
+            CommentTypes thisType = type;
+            if (thisType == null) {
+                thisType = BY_OTHERS;
+            }
+
+            try {
+                Comment c = taskService.addComment(
+                    taskId,
+                    processInstanceId,
+                    thisType.name(),
+                    comment
+                );
+
+                if (c != null) {
+                    CommentObject obj = new CommentObjectImpl();
+                    obj.setCreateTime(c.getTime());
+                    obj.setUserId(c.getUserId());
+                    obj.setContent(comment);
+                    obj.setType(thisType);
+
+                    return obj;
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+
+                throw new ProcessPersistentException(e);
+            }
+        }
+
+        return null;
+    }
+
     /* 执行用户任务的完成操作 */
     private void _completeUserTask(TaskObject task, boolean reject, Map<String, Object> variables)
         throws ProcessPersistentException {
@@ -343,7 +355,8 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 更新已存在的任务历史记录的状态 */
-    private void _updateExtraHistoricTask(String taskId, boolean rejected) throws ProcessPersistentException {
+    private void _updateExtraHistoricTask(String taskId, boolean self, boolean rejected)
+        throws ProcessPersistentException {
         ExtraTaskObject task = extraTaskObjectDao.selectByPrimaryKey(taskId);
         if (task == null) {
             logger.warn("No extra-task object was found. Task id: [{}].", taskId);
@@ -354,6 +367,7 @@ public class UserTaskServiceImpl implements UserTaskService {
         // 依据流程的拒绝状态来设置当前任务
         // 历史记录是审批通过还是被拒绝
         task.setStatus(
+            self ? EXTRA_TASK_STATUS_RESUBMIT :
             rejected
             ? EXTRA_TASK_STATUS_REJECTED
             : EXTRA_TASK_STATUS_APPROVED
@@ -375,7 +389,7 @@ public class UserTaskServiceImpl implements UserTaskService {
         try {
             processObjectDao.updateByPrimaryKey(po);
             // TODO 未来支持可配置选择是否一人只需审批一次
-            _recursiveCompleteUserTask(task.getTaskId(), po, variables);
+            _recursiveCompleteUserTask(task.getTaskId(), task.getAssignee(), po, variables);
             // 获取下一个用户任务节点的名称
             List<Task> taskList
                 = taskService.createTaskQuery()
@@ -435,7 +449,9 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 递归完成用户任务的方法 */
-    private void _recursiveCompleteUserTask(String taskId, ProcessObject po, Map<String, Object> variables)
+    private void _recursiveCompleteUserTask(
+        String taskId, String assignee, ProcessObject po, Map<String, Object> variables
+    )
         throws ProcessPersistentException {
         // 获取流程实例ID
         String processInstanceId = po.getProcessInstanceId();
@@ -443,7 +459,7 @@ public class UserTaskServiceImpl implements UserTaskService {
         // 继续流程的执行
         taskService.complete(taskId, variables);
         // 更新存在的任务历史扩展表的状态
-        _updateExtraHistoricTask(taskId, po.isRejected());
+        _updateExtraHistoricTask(taskId, assignee.equals(po.getCreateUser()), po.isRejected());
 
         // 如果当前任务是被拒绝的，那么系统将跳过自动审批的任务逻辑
         if (po.isRejected()) {
@@ -483,12 +499,12 @@ public class UserTaskServiceImpl implements UserTaskService {
                 if (extraTaskObjectDao.countTasksAsReject(params) > 0) {
                     logger.info("The assignee has approved historic tasks. Assignee: [{}].", task.getAssignee());
 
-                    _recursiveCompleteUserTask(task.getId(), po, variables);
+                    _recursiveCompleteUserTask(task.getId(), task.getAssignee(), po, variables);
                 }
             } else if (extraTaskObjectDao.countTasksAsApprove(params) > 0) {
                 logger.info("The assignee has approved historic tasks. Assignee: [{}].", task.getAssignee());
 
-                _recursiveCompleteUserTask(task.getId(), po, variables);
+                _recursiveCompleteUserTask(task.getId(), task.getAssignee(), po, variables);
             }
         }
     }

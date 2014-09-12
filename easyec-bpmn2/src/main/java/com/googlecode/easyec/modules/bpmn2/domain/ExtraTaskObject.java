@@ -22,6 +22,10 @@ public interface ExtraTaskObject extends DomainModel, ExtraTaskObjectCtrl {
      * 任务扩展表状态：通过
      */
     String EXTRA_TASK_STATUS_APPROVED = "approved";
+    /**
+     * 任务扩展表状态：重新提交
+     */
+    String EXTRA_TASK_STATUS_RESUBMIT   = "resubmit";
 
     String getTaskId();
 
