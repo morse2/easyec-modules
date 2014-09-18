@@ -3,15 +3,24 @@ package com.googlecode.easyec.modules.bpmn2.domain.impl;
 import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessPriority;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus;
 import com.googlecode.easyec.spirit.dao.id.annotation.Identifier;
+import org.apache.commons.beanutils.BeanPropertyValueEqualsPredicate;
+import org.apache.commons.collections.Predicate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
+import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessPriority.P3;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections.CollectionUtils.select;
+import static org.apache.commons.collections.functors.AnyPredicate.getInstance;
 
 /**
  * 流程实体类。
@@ -25,25 +34,26 @@ import static com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessPriority.P
 @Identifier("SEQ_PROCESS_ENTITY")
 public class ProcessObjectImpl implements ProcessObject {
 
-    private Long          uidPk;
-    private String        processDefinitionId;
-    private String        processDefinitionKey;
-    private String        processInstanceId;
-    private String        businessKey;
+    private static final long serialVersionUID = -536687151753861409L;
+    private Long uidPk;
+    private String processDefinitionId;
+    private String processDefinitionKey;
+    private String processInstanceId;
+    private String businessKey;
     private ProcessStatus processStatus;
-    private String        type;
-    private String        taskName;
-    private boolean       rejected;
-    private boolean       partialRejected;
-    private String        createUser;
-    private Date          createTime;
-    private Date          requestTime;
-    private Date          finishTime;
+    private String type;
+    private String taskName;
+    private boolean rejected;
+    private boolean partialRejected;
+    private String createUser;
+    private Date createTime;
+    private Date requestTime;
+    private Date finishTime;
 
     private int priority = P3.getPriority();
 
-    private List<CommentObject>    approvedComments = new ArrayList<CommentObject>();
-    private List<AttachmentObject> attachments      = new ArrayList<AttachmentObject>();
+    private List<CommentObject> comments = new ArrayList<CommentObject>();
+    private List<AttachmentObject> attachments = new ArrayList<AttachmentObject>();
 
     public ProcessObjectImpl() { /* no op */ }
 
@@ -214,23 +224,35 @@ public class ProcessObjectImpl implements ProcessObject {
     }
 
     @Override
-    public List<CommentObject> getApprovedComments() {
-        return approvedComments;
+    public List<CommentObject> getComments() {
+        return comments;
     }
 
     @Override
-    public void setApprovedComments(List<CommentObject> approvedComments) {
-        this.approvedComments = approvedComments;
+    public List<CommentObject> getApprovedComments() {
+        return getComments(Arrays.asList(BY_TASK_APPROVAL, BY_TASK_ANNOTATED));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<CommentObject> getComments(List<CommentTypes> types) {
+        if (isEmpty(types)) return getComments();
+
+        List<Predicate> predicates = new ArrayList<Predicate>();
+        for (CommentTypes type : types) {
+            predicates.add(
+                new BeanPropertyValueEqualsPredicate("type", type)
+            );
+        }
+
+        return new ArrayList<CommentObject>(
+            select(getComments(), getInstance(predicates))
+        );
     }
 
     @Override
     public List<AttachmentObject> getAttachments() {
         return attachments;
-    }
-
-    @Override
-    public void setAttachments(List<AttachmentObject> attachments) {
-        this.attachments = attachments;
     }
 
     @Override

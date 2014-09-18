@@ -3,7 +3,6 @@ package com.googlecode.easyec.modules.bpmn2.query;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus;
 import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
 import com.googlecode.easyec.spirit.dao.paging.Page;
-import com.googlecode.easyec.spirit.query.AbstractQuery;
 import com.googlecode.easyec.spirit.web.controller.sorts.Sort;
 
 import java.util.Date;
@@ -16,7 +15,7 @@ import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.getBean;
  *
  * @author JunJie
  */
-public class UserTaskQuery extends AbstractQuery<UserTaskQuery> {
+public class UserTaskQuery extends CustomJoinQuery<UserTaskQuery> {
 
     public UserTaskQuery processDefinitionId(String processDefinitionId) {
         addSearchTerm("processDefinitionId", processDefinitionId);
@@ -136,13 +135,18 @@ public class UserTaskQuery extends AbstractQuery<UserTaskQuery> {
     }
 
     public UserTaskQuery orderByPriority(Sort.SortTypes direction) {
-        addSort("RES.PRIORITY_", direction);
+        addSort("HIS.PRIORITY_", direction);
         return getSelf();
     }
 
     public UserTaskQuery orderByRequestTime(Sort.SortTypes direction) {
         addSort("ENT.REQUEST_TIME", direction);
         return getSelf();
+    }
+
+    @Override
+    protected String getProcessEntityAlias() {
+        return "ENT";
     }
 
     @Override

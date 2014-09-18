@@ -1,5 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.service.impl;
 
+import com.googlecode.easyec.modules.bpmn2.command.CreateNewTaskCmd;
 import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao;
@@ -9,11 +10,16 @@ import com.googlecode.easyec.modules.bpmn2.domain.impl.CommentObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.query.TaskConsignQuery;
+import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
+import com.googlecode.easyec.modules.bpmn2.task.NewTask;
 import org.activiti.engine.HistoryService;
+import org.activiti.engine.ManagementService;
+import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricActivityInstance;
+import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.slf4j.Logger;
@@ -25,12 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_FINISHED;
-import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_PENDING;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.*;
 import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.*;
+import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_ASSIGNED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_OTHERS;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus.ARCHIVED;
+import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -54,7 +61,13 @@ public class UserTaskServiceImpl implements UserTaskService {
     private ProcessObjectDao processObjectDao;
 
     @Resource
+    private ManagementService managementService;
+
+    @Resource
     private HistoryService historyService;
+
+    @Resource
+    private RuntimeService runtimeService;
 
     @Resource
     private TaskService taskService;
@@ -175,7 +188,7 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
-    public void resolveTask(TaskObject task, CommentTypes type, String comment, Map<String, Object> variables)
+    public void resolveTask(TaskObject task, boolean agree, CommentTypes type, String comment, Map<String, Object> variables)
     throws ProcessPersistentException {
         try {
             // 创建批注
@@ -187,18 +200,18 @@ public class UserTaskServiceImpl implements UserTaskService {
                 = new TaskConsignQuery()
                 .taskId(task.getTaskId())
                 .consignee(task.getAssignee())
-                .status(TASK_CONSIGN_PENDING)
+                .status(agree ? TASK_CONSIGN_PENDING : TASK_CONSIG_DISAGREED)
                 .list();
 
             if (isNotEmpty(list)) {
                 // 标记任务委托历史记录已完成
                 logger.info(
                     "To finish task of consignment. Task id: [" + task.getTaskId() + "], consignee: [" +
-                    task.getAssignee() + "]."
+                        task.getAssignee() + "]."
                 );
 
                 ExtraTaskConsign con = list.get(0);
-                con.setStatus(TASK_CONSIGN_FINISHED);
+                con.setStatus(TASK_CONSIGN_AGREED);
                 con.setFinishTime(new Date());
 
                 int i = extraTaskConsignDao.updateByPrimaryKey(con);
@@ -254,10 +267,39 @@ public class UserTaskServiceImpl implements UserTaskService {
             taskService.setAssignee(taskId, userId);
             // 更新当前任务扩展表中的处理人
             _updateExtraTaskAssignee(taskId, userId);
+            // 发送任务提醒邮件
+            List<TaskObject> tasks = new UserTaskQuery().taskId(taskId).list();
+            if (isNotEmpty(tasks)) {
+                TaskObject task = tasks.get(0);
+                sendMail(task, task, null, FIRE_TYPE_TASK_ASSIGNED);
+            }
         } catch (Exception e) {
             logger.error(e.getMessage());
 
             throw new ProcessPersistentException(e);
+        }
+    }
+
+    @Override
+    public void saveNewTask(NewTask newTask) {
+        Execution execution = null;
+
+        if (isNotBlank(newTask.getProcessInstanceId())) {
+            execution = runtimeService.createExecutionQuery()
+                .processInstanceId(newTask.getProcessInstanceId())
+                .singleResult();
+        }
+
+        // 执行新建任务的方法
+        Task task = managementService.executeCommand(
+            new CreateNewTaskCmd(newTask, execution)
+        );
+
+        // 执行发送邮件通知的方法
+        List<TaskObject> list = new UserTaskQuery().taskId(task.getId()).list();
+        if (isNotEmpty(list)) {
+            TaskObject current = list.get(0);
+            sendMail(current, current, null, FIRE_TYPE_TASK_ASSIGNED);
         }
     }
 
@@ -368,9 +410,9 @@ public class UserTaskServiceImpl implements UserTaskService {
         // 历史记录是审批通过还是被拒绝
         task.setStatus(
             self ? EXTRA_TASK_STATUS_RESUBMIT :
-            rejected
-            ? EXTRA_TASK_STATUS_REJECTED
-            : EXTRA_TASK_STATUS_APPROVED
+                rejected
+                    ? EXTRA_TASK_STATUS_REJECTED
+                    : EXTRA_TASK_STATUS_APPROVED
         );
 
         try {

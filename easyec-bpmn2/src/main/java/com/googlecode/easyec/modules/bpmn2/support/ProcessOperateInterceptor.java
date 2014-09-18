@@ -1,16 +1,15 @@
 package com.googlecode.easyec.modules.bpmn2.support;
 
-import com.googlecode.easyec.modules.bpmn2.domain.*;
+import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
-import com.googlecode.easyec.modules.bpmn2.mail.MailingException;
-import com.googlecode.easyec.modules.bpmn2.mail.SendMailDelegate;
-import com.googlecode.easyec.modules.bpmn2.query.ProcessMailConfigQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
-import org.apache.commons.lang.ClassUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
@@ -18,8 +17,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanInstantiationException;
-import org.springframework.beans.BeanUtils;
 import org.springframework.core.Ordered;
 
 import java.text.DateFormat;
@@ -31,9 +28,9 @@ import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_REJECTED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
+import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
 import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_APPLICANT_SUBMIT;
 import static org.activiti.engine.impl.identity.Authentication.getAuthenticatedUserId;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
@@ -67,7 +64,7 @@ public final class ProcessOperateInterceptor implements Ordered {
     }
 
     // ----- inject spring beans
-    private ProcessService  processService;
+    private ProcessService processService;
     private UserTaskService userTaskService;
 
     public void setProcessService(ProcessService processService) {
@@ -151,7 +148,7 @@ public final class ProcessOperateInterceptor implements Ordered {
     }
 
     /**
-     * 创建流程处理的后置方法。
+     * 创建流程处理的环绕方法。
      *
      * @param entity 流程实体对象
      * @param params 流程过程参数
@@ -202,8 +199,8 @@ public final class ProcessOperateInterceptor implements Ordered {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             logger.debug(
                 "The process is started. Instance id: ["
-                + entity.getProcessInstanceId() + "], start time is: ["
-                + df.format(entity.getRequestTime()) + "]."
+                    + entity.getProcessInstanceId() + "], start time is: ["
+                    + df.format(entity.getRequestTime()) + "]."
             );
         }
 
@@ -355,7 +352,8 @@ public final class ProcessOperateInterceptor implements Ordered {
             );
 
             // 邮件通知申请人
-            _doSendMail(task, task, comment, FIRE_TYPE_TASK_REJECTED);
+            /* 此处不发送被拒绝的邮件，需要发送此类邮件，请手动调用 */
+            /*sendMail(task, task, comment, FIRE_TYPE_TASK_REJECTED);*/
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -435,8 +433,8 @@ public final class ProcessOperateInterceptor implements Ordered {
         if (logger.isDebugEnabled()) {
             logger.debug(
                 "Prepare to add a comment. Comment type: ["
-                + comment.getType() + "], content: ["
-                + comment.getContent() + "]."
+                    + comment.getType() + "], content: ["
+                    + comment.getContent() + "]."
             );
         }
 
@@ -461,7 +459,7 @@ public final class ProcessOperateInterceptor implements Ordered {
         if (logger.isDebugEnabled()) {
             logger.debug(
                 "Prepare to consign this task. Task id: ["
-                + task.getTaskId() + "]."
+                    + task.getTaskId() + "]."
             );
         }
 
@@ -479,39 +477,42 @@ public final class ProcessOperateInterceptor implements Ordered {
      * 被委托人完成任务处理的后置方法。
      *
      * @param task      任务实体对象
+     * @param agree     表示是否同意
      * @param comment   备注内容
      * @param variables 流程变量
      * @throws Throwable
      */
     @After(
-        value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,comment,variables,..)",
-        argNames = "task,comment,variables"
+        value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,agree,comment,variables,..)",
+        argNames = "task,agree,comment,variables"
     )
-    public void afterResolveTask(TaskObject task, String comment, Map<String, Object> variables) throws Throwable {
-        afterResolveTask(task, BY_TASK_ANNOTATED, comment, variables);
+    public void afterResolveTask(TaskObject task, boolean agree, String comment, Map<String, Object> variables)
+        throws Throwable {
+        afterResolveTask(task, agree, BY_TASK_ANNOTATED, comment, variables);
     }
 
     /**
      * 被委托人完成任务处理的后置方法。
      *
      * @param task      任务实体对象
+     * @param agree     表示是否同意
      * @param type      备注类型
      * @param comment   备注内容
      * @param variables 流程变量
      * @throws Throwable
      */
     @After(
-        value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,type,comment,variables,..)",
-        argNames = "task,type,comment,variables"
+        value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,agree,type,comment,variables,..)",
+        argNames = "task,agree,type,comment,variables"
     )
-    public void afterResolveTask(TaskObject task, CommentTypes type, String comment, Map<String, Object> variables)
+    public void afterResolveTask(TaskObject task, boolean agree, CommentTypes type, String comment, Map<String, Object> variables)
         throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug("Prepare to resolve this task. Task id: [" + task.getTaskId() + "].");
         }
 
         try {
-            userTaskService.resolveTask(task, type, comment, variables);
+            userTaskService.resolveTask(task, agree, type, comment, variables);
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -539,63 +540,7 @@ public final class ProcessOperateInterceptor implements Ordered {
             }
 
             // 执行邮件发送业务
-            _doSendMail(newTask, oldTask, comment, fireType);
-        }
-    }
-
-    /* 执行统一邮件发送的方法 */
-    private void _doSendMail(TaskObject newTask, TaskObject oldTask, String comment, String fireType) {
-        Long processEntityId = newTask.getProcessObject().getUidPk();
-        logger.debug("Process entity id: [{}].", processEntityId);
-
-        // 获取邮件的配置信息
-        List<ProcessMailConfig> mailConfigs
-            = new ProcessMailConfigQuery()
-            .processEntityId(processEntityId)
-            .fireType(fireType)
-            .list();
-
-        // 如果没有邮件配置信息，则不发送邮件
-        if (isEmpty(mailConfigs)) {
-            logger.warn(
-                "No Process mail configuration was found. Fire type: [" + fireType +
-                "], entity id: [" + processEntityId + "]. So ignore operation else."
-            );
-
-            return;
-        }
-
-        try {
-            // 默认获取第一条配置信息
-            ProcessMailConfig config = mailConfigs.get(0);
-            // 加载预定义的类信息
-            Class cls = ClassUtils.getClass(config.getMailClass());
-            logger.debug("Class name: [{}].", cls.getName());
-
-            if (!SendMailDelegate.class.isAssignableFrom(cls)) {
-                logger.warn(
-                    "The class isn't assignable from [" +
-                    SendMailDelegate.class.getName() + "], so ignore operation else."
-                );
-
-                return;
-            }
-
-            SendMailDelegate delegate;
-
-            try {
-                // 实例化配置的类
-                delegate = (SendMailDelegate) BeanUtils.instantiateClass(cls);
-                delegate.sendMail(newTask, oldTask, comment, config.getFileKey());
-            } finally {
-                delegate = null;
-            }
-        } catch (ClassNotFoundException e) {
-            logger.error("Class is not found that configs in DB. Error msg: [{}].", e.getMessage());
-        } catch (BeanInstantiationException e) {
-            logger.error("Bean cannot be instantiated. Error msg: [{}].", e.getMessage());
-        } catch (MailingException e) {
-            logger.error(e.getMessage(), e);
+            sendMail(newTask, oldTask, comment, fireType);
         }
     }
 }

@@ -40,18 +40,18 @@ import static com.googlecode.easyec.spirit.web.controller.sorts.Sort.SortTypes.D
 public class Bpmn2Test extends BaseBpmn2Test {
 
     @Autowired
-    private HistoryService    historyService;
+    private HistoryService historyService;
     @Autowired
-    private RuntimeService    runtimeService;
+    private RuntimeService runtimeService;
     @Autowired
     private RepositoryService repositoryService;
     @Autowired
-    private TaskService       taskService;
+    private TaskService taskService;
     @Autowired
-    private FormService       formService;
+    private FormService formService;
 
     @Autowired
-    private ProcessService  processService;
+    private ProcessService processService;
     @Autowired
     private UserTaskService userTaskService;
 
@@ -125,6 +125,9 @@ public class Bpmn2Test extends BaseBpmn2Test {
         List<ProcessObject> list
             = new ProcessQuery()
             .applicantId("D671CBC")
+            .customJoin("IVC ivc", "ivc.uidpk")
+            .customWhere("ivc.depot = 'SHA' and ivc.region <> #{region}")
+            .customTerm("region", "SRH")
             .list();
 
         System.out.println(list);
@@ -150,14 +153,13 @@ public class Bpmn2Test extends BaseBpmn2Test {
     @Test
     public void findMyTasks() throws WrongProcessValueException {
         Page page = queryProcessService.findTasks(
-            new UserTaskQuery()
-                .owner("B706RFU")
+            new UserTaskQuery().taskAssignee("W674HKL")
+            .customJoin("IVC ivc", "ivc.uidpk")
+            .customWhere("ivc.depot = 'SHA' and ivc.region <> #{region}")
+            .customTerm("region", "SRH")
         );
 
         Assert.assertNotNull(page);
-
-        TaskObject task = queryProcessService.getHistoricTask("425");
-        System.out.println(task);
     }
 
     @Test

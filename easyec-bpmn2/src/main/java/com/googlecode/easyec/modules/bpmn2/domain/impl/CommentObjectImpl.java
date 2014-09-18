@@ -1,6 +1,7 @@
 package com.googlecode.easyec.modules.bpmn2.domain.impl;
 
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 
@@ -16,13 +17,14 @@ import java.util.Date;
  */
 public class CommentObjectImpl implements CommentObject {
 
-    private String       id;
-    private String       userId;
-    private String       content;
+    private String id;
+    private String userId;
+    private String content;
     private CommentTypes type;
-    private Date         createTime;
+    private Date createTime;
 
     private ExtraTaskObject extraTask;
+    private ExtraTaskConsign extraTaskConsign;
 
     @Override
     public String getId() {
@@ -77,5 +79,31 @@ public class CommentObjectImpl implements CommentObject {
     @Override
     public ExtraTaskObject getExtraTask() {
         return extraTask;
+    }
+
+    public ExtraTaskConsign getExtraTaskConsign() {
+        return extraTaskConsign;
+    }
+
+    @Override
+    public String getStatus() {
+        switch (getType()) {
+            case BY_TASK_APPROVAL:
+                return _getExtraTaskStatus();
+            case BY_TASK_ANNOTATED:
+                return _getExtraTaskConsignStatus();
+        }
+
+        return null;
+    }
+
+    private String _getExtraTaskStatus() {
+        ExtraTaskObject task = getExtraTask();
+        return task != null ? task.getStatus() : null;
+    }
+
+    private String _getExtraTaskConsignStatus() {
+        ExtraTaskConsign consign = getExtraTaskConsign();
+        return consign != null ? consign.getStatus() : null;
     }
 }

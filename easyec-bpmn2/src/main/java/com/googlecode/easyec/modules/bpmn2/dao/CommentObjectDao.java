@@ -9,9 +9,9 @@ import java.util.List;
  */
 public interface CommentObjectDao {
 
-    List<CommentObject> selectApprovedCommentsByTaskId(String taskId);
+    List<CommentObject> selectAllComments(String processInstanceId);
 
-    List<CommentObject> selectApprovedCommentsByProcessInstanceId(String processInstanceId);
+    List<CommentObject> selectApprovedCommentsByTaskId(String taskId);
 
     List<CommentObject> selectAnnotatedCommentsByTaskId(String taskId);
 }

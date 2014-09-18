@@ -69,4 +69,11 @@
         from BPM_HI_TASK_CONSIGN
         <include refid="Search_Condition"/>
     </select>
+
+    <select id="selectByTaskId" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_HI_TASK_CONSIGN
+        where TASK_ID = #{taskId,jdbcType=VARCHAR}
+    </select>
 </mapper>

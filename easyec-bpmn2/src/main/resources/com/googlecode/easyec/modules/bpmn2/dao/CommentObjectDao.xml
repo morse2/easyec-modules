@@ -11,11 +11,24 @@
         <association property="extraTask" column="TASK_ID_"
                      select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao.selectByPrimaryKey"
                 />
+
+        <association property="extraTaskConsign" column="TASK_ID_"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao.selectByTaskId"
+                     />
     </resultMap>
 
     <sql id="Base_Column_List">
         HIC.ID_, HIC.TASK_ID_, HIC.USER_ID_, HIC.TYPE_, HIC.TIME_, HIC.MESSAGE_, HIC.TIME_
     </sql>
+
+    <select id="selectAllComments" parameterType="string" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from ACT_HI_COMMENT HIC
+        where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
+        and HIC.ACTION_ = 'AddComment'
+        order by HIC.TIME_ desc
+    </select>
 
     <select id="selectApprovedCommentsByTaskId" parameterType="string" resultMap="BaseResultMap">
         select
@@ -23,16 +36,7 @@
         from ACT_HI_COMMENT HIC
         where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
         and HIC.TYPE_ = 'BY_TASK_APPROVAL'
-        order by HIC.TIME_
-    </select>
-
-    <select id="selectApprovedCommentsByProcessInstanceId" parameterType="string" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from ACT_HI_COMMENT HIC
-        where HIC.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
-        and HIC.TYPE_ = 'BY_TASK_APPROVAL'
-        order by HIC.TIME_
+        order by HIC.TIME_ desc
     </select>
 
     <select id="selectAnnotatedCommentsByTaskId" parameterType="string" resultMap="BaseResultMap">
@@ -41,6 +45,6 @@
         from ACT_HI_COMMENT HIC
         where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
         and HIC.TYPE_ = 'BY_TASK_ANNOTATED'
-        order by HIC.TIME_
+        order by HIC.TIME_ desc
     </select>
 </mapper>

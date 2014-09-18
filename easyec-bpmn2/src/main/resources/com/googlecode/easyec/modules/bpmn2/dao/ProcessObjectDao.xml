@@ -18,8 +18,8 @@
         <result column="PROC_TYPE" property="type" jdbcType="VARCHAR"/>
         <result column="PROC_PRIORITY" property="priority" jdbcType="INTEGER"/>
 
-        <collection property="approvedComments" column="PROC_INST_ID"
-                    select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectApprovedCommentsByProcessInstanceId"
+        <collection property="comments" column="PROC_INST_ID"
+                    select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectAllComments"
                 />
 
         <collection property="attachments" column="PROC_INST_ID"
@@ -44,6 +44,7 @@
 
     <sql id="Search_Conditions">
         <where>
+            ${customClauseSQL}
             <if test="processDefinitionId != null">
                 and BPE.PROC_DEF_ID = #{processDefinitionId,jdbcType=VARCHAR}
             </if>
@@ -168,6 +169,7 @@
         <include refid="Base_Column_List"/>
         <include refid="Base_From_Table"/>
         <include refid="Join_Admin_SQL"/>
+        ${customJoinSQL}
         <include refid="Search_Conditions"/>
         ${orderBy}
     </select>
@@ -177,6 +179,7 @@
         count(distinct BPE.UIDPK)
         <include refid="Base_From_Table"/>
         <include refid="Join_Admin_SQL"/>
+        ${customJoinSQL}
         <include refid="Search_Conditions"/>
     </select>
 

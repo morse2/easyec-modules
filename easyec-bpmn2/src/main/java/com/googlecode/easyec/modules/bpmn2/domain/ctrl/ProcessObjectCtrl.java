@@ -1,12 +1,10 @@
 package com.googlecode.easyec.modules.bpmn2.domain.ctrl;
 
 import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
-import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessPriority;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * 流程实体对象的控制类
@@ -116,10 +114,6 @@ public interface ProcessObjectCtrl {
     void setRequestTime(Date requestTime);
 
     void setFinishTime(Date finishTime);
-
-    void setApprovedComments(List<CommentObject> approvedComments);
-
-    void setAttachments(List<AttachmentObject> attachments);
 
     boolean addAttachment(AttachmentObject attachment);
 }

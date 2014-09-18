@@ -20,6 +20,7 @@
           p:processEngineConfiguration-ref="processEngineConfiguration"
             />
 
+    <bean id="managementService" factory-bean="processEngine" factory-method="getManagementService"/>
     <bean id="repositoryService" factory-bean="processEngine" factory-method="getRepositoryService"/>
     <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService"/>
     <bean id="runtimeService" factory-bean="processEngine" factory-method="getRuntimeService"/>

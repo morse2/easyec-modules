@@ -29,19 +29,20 @@
     </resultMap>
 
     <sql id="TaskOnly_Col_List">
-        RES.ID_, RES.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_
+        RES.ID_, HIS.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_
     </sql>
     <sql id="Base_Column_List">
-        RES.ID_, RES.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_, RES.PRIORITY_, ENT.REQUEST_TIME
+        RES.ID_, HIS.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_, HIS.PRIORITY_, ENT.REQUEST_TIME
     </sql>
     <sql id="Historic_Column_List">
-        RES.ID_, RES.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.START_TIME_ AS CREATE_TIME_, RES.FORM_KEY_, RES.END_TIME_, RES.PRIORITY_
+        HIS.ID_, HIS.PROC_INST_ID_, HIS.NAME_, HIS.ASSIGNEE_, HIS.OWNER_, HIS.START_TIME_ AS CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, HIS.PRIORITY_
     </sql>
 
     <sql id="RU_Task_Join_Tables">
         from ACT_RU_TASK RES
         join ACT_HI_TASKINST HIS on HIS.ID_ = RES.ID_
-        join BPM_PROC_ENTITY ENT on RES.PROC_INST_ID_ = ENT.PROC_INST_ID
+        join BPM_PROC_ENTITY ENT on HIS.PROC_INST_ID_ = ENT.PROC_INST_ID
+        ${customJoinSQL}
         <if test="candidateUser != null or claimed != null">
             join ACT_RU_IDENTITYLINK I on I.TASK_ID_ = RES.ID_
         </if>
@@ -56,13 +57,14 @@
     </sql>
 
     <sql id="HI_Task_Join_Tables">
-        from ACT_HI_TASKINST RES
-        join BPM_PROC_ENTITY ENT on RES.PROC_INST_ID_ = ENT.PROC_INST_ID
+        from ACT_HI_TASKINST HIS
+        join BPM_PROC_ENTITY ENT on HIS.PROC_INST_ID_ = ENT.PROC_INST_ID
+        ${customJoinSQL}
         <if test="candidateUser != null or claimed != null">
             join ACT_HI_IDENTITYLINK I on I.TASK_ID_ = RES.ID_
         </if>
         <if test="businessKey != null or businessKeyLike != null">
-            join ACT_HI_PROCINST HIP on RES.PROC_INST_ID_ = HIP.PROC_INST_ID_
+            join ACT_HI_PROCINST HIP on HIS.PROC_INST_ID_ = HIP.PROC_INST_ID_
         </if>
         <if test="administrator != null">
             join BPM_USER_PROC_RELATION BUPR on BUPR.PROC_KEY = ENT.PROC_DEF_KEY
@@ -70,22 +72,23 @@
             and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
         </if>
         <if test="includeConsign != null and includeConsign">
-            left join BPM_HI_TASK_CONSIGN BTC on RES.ID_ = BTC.TASK_ID
+            left join BPM_HI_TASK_CONSIGN BTC on HIS.ID_ = BTC.TASK_ID
         </if>
     </sql>
 
     <sql id="Search_Conditions">
+        ${customClauseSQL}
         <if test="taskId != null">
-            and RES.ID_ = #{taskId,jdbcType=VARCHAR}
+            and HIS.ID_ = #{taskId,jdbcType=VARCHAR}
         </if>
         <if test="processDefinitionId != null">
-            and RES.PROC_DEF_ID_ = #{processDefinitionId,jdbcType=VARCHAR}
+            and HIS.PROC_DEF_ID_ = #{processDefinitionId,jdbcType=VARCHAR}
         </if>
         <if test="processDefinitionKey != null">
             and ENT.PROC_DEF_KEY = #{processDefinitionKey,jdbcType=VARCHAR}
         </if>
         <if test="processInstanceId != null">
-            and RES.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
+            and HIS.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
         </if>
         <if test="businessKey != null">
             and HIP.BUSINESS_KEY_ = #{businessKey,jdbcType=VARCHAR}
@@ -97,18 +100,18 @@
         <choose>
             <when test="includeConsign != null and includeConsign">
                 and (
-                (RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+                (HIS.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
                 <if test="hasEndTime != null and hasEndTime">
-                    and RES.END_TIME_ is not null
+                    and HIS.END_TIME_ is not null
                 </if>
                 ) or (BTC.CONSIGNEE = #{taskAssignee,jdbcType=VARCHAR}
                 and BTC.CONSIGN_STATUS = 'finished')
                 )
             </when>
             <when test="taskAssignee != null">
-                and RES.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+                and HIS.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
                 <if test="hasEndTime != null and hasEndTime">
-                    and RES.END_TIME_ is not null
+                    and HIS.END_TIME_ is not null
                 </if>
             </when>
         </choose>
@@ -116,15 +119,15 @@
             and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
         </if>
         <if test="noAssignee != null and noAssignee">
-            and RES.ASSIGNEE_ is null and not exists(
+            and HIS.ASSIGNEE_ is null and not exists(
             select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
-            where i_.TASK_ID_ = RES.ID_ and i_.type_ = 'candidate'
+            where i_.TASK_ID_ = HIS.ID_ and i_.type_ = 'candidate'
             )
         </if>
         <if test="inTaskPool != null and inTaskPool">
-            and RES.ASSIGNEE_ is null and exists(
+            and HIS.ASSIGNEE_ is null and exists(
             select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
-            where i_.TASK_ID_ = RES.ID_ and i_.type_ = 'candidate'
+            where i_.TASK_ID_ = HIS.ID_ and i_.type_ = 'candidate'
             )
         </if>
         <if test="candidateUser != null or claimed != null">
@@ -135,16 +138,16 @@
             <if test="claimed != null">
                 <choose>
                     <when test="claimed">
-                        and RES.ASSIGNEE_ is not null
+                        and HIS.ASSIGNEE_ is not null
                     </when>
                     <otherwise>
-                        and RES.ASSIGNEE_ is null
+                        and HIS.ASSIGNEE_ is null
                     </otherwise>
                 </choose>
             </if>
         </if>
         <if test="owner != null">
-            and RES.OWNER_ = #{owner,jdbcType=VARCHAR}
+            and HIS.OWNER_ = #{owner,jdbcType=VARCHAR}
         </if>
         <if test="delegated != null">
             and (
@@ -231,7 +234,7 @@
     </select>
 
     <select id="countHistoricTasks" parameterType="hashmap" resultType="long">
-        select count(distinct RES.ID_)
+        select count(distinct HIS.ID_)
         <include refid="HI_Task_Join_Tables"/>
         <where>
             <include refid="Search_Conditions"/>
@@ -241,7 +244,7 @@
     <select id="selectHistoric" parameterType="string" resultMap="BaseResultMap">
         select distinct
         <include refid="Historic_Column_List"/>
-        from ACT_HI_TASKINST RES
-        where RES.ID_ = #{taskId,jdbcType=VARCHAR}
+        from ACT_HI_TASKINST HIS
+        where HIS.ID_ = #{taskId,jdbcType=VARCHAR}
     </select>
 </mapper>

@@ -1,6 +1,7 @@
 package com.googlecode.easyec.modules.bpmn2.domain;
 
 import com.googlecode.easyec.modules.bpmn2.domain.ctrl.ProcessObjectCtrl;
+import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus;
 import com.googlecode.easyec.spirit.domain.GenericPersistentDomainModel;
 
@@ -119,7 +120,12 @@ public interface ProcessObject extends GenericPersistentDomainModel<Long>, Proce
      */
     Date getFinishTime();
 
+    List<CommentObject> getComments();
+
     List<CommentObject> getApprovedComments();
+
+    @SuppressWarnings("unchecked")
+    List<CommentObject> getComments(List<CommentTypes> types);
 
     List<AttachmentObject> getAttachments();
 }

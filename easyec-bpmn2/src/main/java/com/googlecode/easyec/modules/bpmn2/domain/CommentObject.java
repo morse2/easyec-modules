@@ -24,4 +24,6 @@ public interface CommentObject extends DomainModel, CommentObjectCtrl {
     Date getCreateTime();
 
     ExtraTaskObject getExtraTask();
+
+    String getStatus();
 }

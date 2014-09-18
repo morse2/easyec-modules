@@ -3,7 +3,6 @@ package com.googlecode.easyec.modules.bpmn2.query;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus;
 import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
 import com.googlecode.easyec.spirit.dao.paging.Page;
-import com.googlecode.easyec.spirit.query.AbstractQuery;
 import com.googlecode.easyec.spirit.web.controller.sorts.Sort;
 
 import java.util.Date;
@@ -16,7 +15,7 @@ import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.getBean;
  *
  * @author JunJie
  */
-public class UserTaskHistoricQuery extends AbstractQuery<UserTaskHistoricQuery> {
+public class UserTaskHistoricQuery extends CustomJoinQuery<UserTaskHistoricQuery> {
 
     public UserTaskHistoricQuery() {
         addSearchTerm("hasEndTime", true);
@@ -113,13 +112,6 @@ public class UserTaskHistoricQuery extends AbstractQuery<UserTaskHistoricQuery> 
         return getSelf();
     }
 
-    public UserTaskHistoricQuery delegated(boolean or, boolean resolved) {
-        addSearchTerm("delegated", true);
-        addSearchTerm("delegatedOrResolved", or);
-        addSearchTerm("resolved", resolved);
-        return getSelf();
-    }
-
     public UserTaskHistoricQuery claimedTask() {
         addSearchTerm("claimed", true);
         return getSelf();
@@ -137,7 +129,7 @@ public class UserTaskHistoricQuery extends AbstractQuery<UserTaskHistoricQuery> 
     }
 
     public UserTaskHistoricQuery orderByPriority(Sort.SortTypes direction) {
-        addSort("RES.PRIORITY_", direction);
+        addSort("HIS.PRIORITY_", direction);
         return getSelf();
     }
 
@@ -147,8 +139,13 @@ public class UserTaskHistoricQuery extends AbstractQuery<UserTaskHistoricQuery> 
     }
 
     public UserTaskHistoricQuery orderByTaskEndTime(Sort.SortTypes direction) {
-        addSort("RES.END_TIME_", direction);
+        addSort("HIS.END_TIME_", direction);
         return getSelf();
+    }
+
+    @Override
+    protected String getProcessEntityAlias() {
+        return "ENT";
     }
 
     @Override

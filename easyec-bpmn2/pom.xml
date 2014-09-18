@@ -3,7 +3,7 @@
     <parent>
         <artifactId>easyec-modules</artifactId>
         <groupId>com.googlecode.easyec</groupId>
-        <version>1.0.2-SNAPSHOT</version>
+        <version>1.0.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>easyec-bpmn2</artifactId>

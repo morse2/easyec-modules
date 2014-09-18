@@ -3,7 +3,6 @@ package com.googlecode.easyec.modules.bpmn2.query;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus;
 import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
 import com.googlecode.easyec.spirit.dao.paging.Page;
-import com.googlecode.easyec.spirit.query.AbstractQuery;
 import com.googlecode.easyec.spirit.web.controller.sorts.Sort;
 
 import java.util.Date;
@@ -16,7 +15,7 @@ import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.getBean;
  *
  * @author JunJie
  */
-public class ProcessQuery extends AbstractQuery<ProcessQuery> {
+public class ProcessQuery extends CustomJoinQuery<ProcessQuery> {
 
     public ProcessQuery processDefinitionId(String processDefinitionId) {
         addSearchTerm("processDefinitionId", processDefinitionId);
@@ -117,6 +116,11 @@ public class ProcessQuery extends AbstractQuery<ProcessQuery> {
     public ProcessQuery orderByFinishTime(Sort.SortTypes direction) {
         addSort("BPE.FINISH_TIME", direction);
         return getSelf();
+    }
+
+    @Override
+    protected String getProcessEntityAlias() {
+        return "BPE";
     }
 
     @Override
