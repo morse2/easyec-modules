@@ -25,7 +25,7 @@
         select
         <include refid="Base_Column_List"/>
         from ACT_HI_COMMENT HIC
-        where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
+        where HIC.proc_inst_id_ = #{processInstanceId,jdbcType=VARCHAR}
         and HIC.ACTION_ = 'AddComment'
         order by HIC.TIME_ desc
     </select>
