@@ -46,6 +46,15 @@ public interface TaskObjectDao {
     long countTasks(Map<String, Object> params);
 
     /**
+     * 根据流程任务的KEY，
+     * 来分组查询任务KEY列表
+     *
+     * @param params 查询条件
+     * @return 任务的KEY
+     */
+    List<String> groupByTaskDefKey(Map<String, Object> params);
+
+    /**
      * 分页查询历史用户任务信息
      *
      * @param page 分页对象

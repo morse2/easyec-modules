@@ -77,125 +77,130 @@
     </sql>
 
     <sql id="Search_Conditions">
-        ${customClauseSQL}
-        <if test="taskId != null">
-            and HIS.ID_ = #{taskId,jdbcType=VARCHAR}
-        </if>
-        <if test="processDefinitionId != null">
-            and HIS.PROC_DEF_ID_ = #{processDefinitionId,jdbcType=VARCHAR}
-        </if>
-        <if test="processDefinitionKey != null">
-            and ENT.PROC_DEF_KEY = #{processDefinitionKey,jdbcType=VARCHAR}
-        </if>
-        <if test="processInstanceId != null">
-            and HIS.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
-        </if>
-        <if test="businessKey != null">
-            and HIP.BUSINESS_KEY_ = #{businessKey,jdbcType=VARCHAR}
-        </if>
-        <if test="businessKeyLike != null">
-            <bind name="_businessKeyLike" value="'%' + businessKeyLike + '%'"/>
-            and HIP.BUSINESS_KEY_ like #{_businessKeyLike,jdbcType=VARCHAR}
-        </if>
-        <choose>
-            <when test="includeConsign != null and includeConsign">
-                and (
-                (HIS.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
-                <if test="hasEndTime != null and hasEndTime">
-                    and HIS.END_TIME_ is not null
-                </if>
-                ) or (BTC.CONSIGNEE = #{taskAssignee,jdbcType=VARCHAR}
-                and BTC.CONSIGN_STATUS = 'finished')
-                )
-            </when>
-            <when test="taskAssignee != null">
-                and HIS.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
-                <if test="hasEndTime != null and hasEndTime">
-                    and HIS.END_TIME_ is not null
-                </if>
-            </when>
-        </choose>
-        <if test="administrator != null">
-            and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
-        </if>
-        <if test="noAssignee != null and noAssignee">
-            and HIS.ASSIGNEE_ is null and not exists(
-            select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
-            where i_.TASK_ID_ = HIS.ID_ and i_.type_ = 'candidate'
-            )
-        </if>
-        <if test="inTaskPool != null and inTaskPool">
-            and HIS.ASSIGNEE_ is null and exists(
-            select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
-            where i_.TASK_ID_ = HIS.ID_ and i_.type_ = 'candidate'
-            )
-        </if>
-        <if test="candidateUser != null or claimed != null">
-            and I.TYPE_ = 'candidate'
-            <if test="candidateUser != null">
-                and I.USER_ID_ = #{candidateUser,jdbcType=VARCHAR}
+        <where>
+            ${customClauseSQL}
+            <if test="taskId != null">
+                and HIS.ID_ = #{taskId,jdbcType=VARCHAR}
             </if>
-            <if test="claimed != null">
+            <if test="taskDefinitionKey != null">
+                and HIS.TASK_DEF_KEY_ = #{taskDefinitionKey,jdbcType=VARCHAR}
+            </if>
+            <if test="processDefinitionId != null">
+                and HIS.PROC_DEF_ID_ = #{processDefinitionId,jdbcType=VARCHAR}
+            </if>
+            <if test="processDefinitionKey != null">
+                and ENT.PROC_DEF_KEY = #{processDefinitionKey,jdbcType=VARCHAR}
+            </if>
+            <if test="processInstanceId != null">
+                and HIS.PROC_INST_ID_ = #{processInstanceId,jdbcType=VARCHAR}
+            </if>
+            <if test="businessKey != null">
+                and HIP.BUSINESS_KEY_ = #{businessKey,jdbcType=VARCHAR}
+            </if>
+            <if test="businessKeyLike != null">
+                <bind name="_businessKeyLike" value="'%' + businessKeyLike + '%'"/>
+                and HIP.BUSINESS_KEY_ like #{_businessKeyLike,jdbcType=VARCHAR}
+            </if>
+            <choose>
+                <when test="includeConsign != null and includeConsign">
+                    and (
+                    (HIS.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+                    <if test="hasEndTime != null and hasEndTime">
+                        and HIS.END_TIME_ is not null
+                    </if>
+                    ) or (BTC.CONSIGNEE = #{taskAssignee,jdbcType=VARCHAR}
+                    and BTC.CONSIGN_STATUS = 'finished')
+                    )
+                </when>
+                <when test="taskAssignee != null">
+                    and HIS.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
+                    <if test="hasEndTime != null and hasEndTime">
+                        and HIS.END_TIME_ is not null
+                    </if>
+                </when>
+            </choose>
+            <if test="administrator != null">
+                and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
+            </if>
+            <if test="noAssignee != null and noAssignee">
+                and HIS.ASSIGNEE_ is null and not exists(
+                select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
+                where i_.TASK_ID_ = HIS.ID_ and i_.type_ = 'candidate'
+                )
+            </if>
+            <if test="inTaskPool != null and inTaskPool">
+                and HIS.ASSIGNEE_ is null and exists(
+                select i_.TASK_ID_ from ACT_RU_IDENTITYLINK i_
+                where i_.TASK_ID_ = HIS.ID_ and i_.type_ = 'candidate'
+                )
+            </if>
+            <if test="candidateUser != null or claimed != null">
+                and I.TYPE_ = 'candidate'
+                <if test="candidateUser != null">
+                    and I.USER_ID_ = #{candidateUser,jdbcType=VARCHAR}
+                </if>
+                <if test="claimed != null">
+                    <choose>
+                        <when test="claimed">
+                            and HIS.ASSIGNEE_ is not null
+                        </when>
+                        <otherwise>
+                            and HIS.ASSIGNEE_ is null
+                        </otherwise>
+                    </choose>
+                </if>
+            </if>
+            <if test="owner != null">
+                and HIS.OWNER_ = #{owner,jdbcType=VARCHAR}
+            </if>
+            <if test="delegated != null">
+                and (
+                <if test="delegated">
+                    <![CDATA[RES.DELEGATION_ <> null]]>
+                </if>
                 <choose>
-                    <when test="claimed">
-                        and HIS.ASSIGNEE_ is not null
+                    <when test="delegatedOrResolved">or</when>
+                    <otherwise>and</otherwise>
+                </choose>
+                <choose>
+                    <when test="resolved">
+                        RES.DELEGATION_ = 'RESOLVED'
                     </when>
                     <otherwise>
-                        and HIS.ASSIGNEE_ is null
+                        RES.DELEGATION_ = 'PENDING'
+                    </otherwise>
+                </choose>
+                )
+            </if>
+            <if test="processStatus != null">
+                and ENT.PROC_STATUS = #{processStatus,jdbcType=VARCHAR}
+            </if>
+            <if test="applicant != null">
+                and ENT.CREATE_USER = #{applicant,jdbcType=VARCHAR}
+            </if>
+            <if test="rejected != null">
+                <choose>
+                    <when test="rejected">
+                        and ENT.REJECTED = 1
+                    </when>
+                    <otherwise>
+                        and ENT.REJECTED = 0
                     </otherwise>
                 </choose>
             </if>
-        </if>
-        <if test="owner != null">
-            and HIS.OWNER_ = #{owner,jdbcType=VARCHAR}
-        </if>
-        <if test="delegated != null">
-            and (
-            <if test="delegated">
-                <![CDATA[RES.DELEGATION_ <> null]]>
+            <if test="requestTimeStart != null">
+                <![CDATA[and ENT.REQUEST_TIME >= #{requestTimeStart,jdbcType=TIMESTAMP}]]>
             </if>
-            <choose>
-                <when test="delegatedOrResolved">or</when>
-                <otherwise>and</otherwise>
-            </choose>
-            <choose>
-                <when test="resolved">
-                    RES.DELEGATION_ = 'RESOLVED'
-                </when>
-                <otherwise>
-                    RES.DELEGATION_ = 'PENDING'
-                </otherwise>
-            </choose>
-            )
-        </if>
-        <if test="processStatus != null">
-            and ENT.PROC_STATUS = #{processStatus,jdbcType=VARCHAR}
-        </if>
-        <if test="applicant != null">
-            and ENT.CREATE_USER = #{applicant,jdbcType=VARCHAR}
-        </if>
-        <if test="rejected != null">
-            <choose>
-                <when test="rejected">
-                    and ENT.REJECTED = 1
-                </when>
-                <otherwise>
-                    and ENT.REJECTED = 0
-                </otherwise>
-            </choose>
-        </if>
-        <if test="requestTimeStart != null">
-            <![CDATA[and ENT.REQUEST_TIME >= #{requestTimeStart,jdbcType=TIMESTAMP}]]>
-        </if>
-        <if test="requestTimeEnd != null">
-            <![CDATA[and ENT.REQUEST_TIME <= #{requestTimeEnd,jdbcType=TIMESTAMP}]]>
-        </if>
-        <if test="finishTimeStart != null">
-            <![CDATA[and ENT.FINISH_TIME >= #{finishTimeStart,jdbcType=TIMESTAMP}]]>
-        </if>
-        <if test="finishTimeEnd != null">
-            <![CDATA[and ENT.FINISH_TIME <= #{finishTimeEnd,jdbcType=TIMESTAMP}]]>
-        </if>
+            <if test="requestTimeEnd != null">
+                <![CDATA[and ENT.REQUEST_TIME <= #{requestTimeEnd,jdbcType=TIMESTAMP}]]>
+            </if>
+            <if test="finishTimeStart != null">
+                <![CDATA[and ENT.FINISH_TIME >= #{finishTimeStart,jdbcType=TIMESTAMP}]]>
+            </if>
+            <if test="finishTimeEnd != null">
+                <![CDATA[and ENT.FINISH_TIME <= #{finishTimeEnd,jdbcType=TIMESTAMP}]]>
+            </if>
+        </where>
     </sql>
 
     <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
@@ -209,36 +214,35 @@
         select distinct
         <include refid="Base_Column_List"/>
         <include refid="RU_Task_Join_Tables"/>
-        <where>
-            <include refid="Search_Conditions"/>
-        </where>
+        <include refid="Search_Conditions"/>
         ${orderBy}
     </select>
 
     <select id="countTasks" parameterType="hashmap" resultType="long">
         select count(distinct RES.ID_)
         <include refid="RU_Task_Join_Tables"/>
-        <where>
-            <include refid="Search_Conditions"/>
-        </where>
+        <include refid="Search_Conditions"/>
+    </select>
+
+    <select id="groupByTaskDefKey" parameterType="hashmap" resultType="string">
+        select RES.TASK_DEF_KEY_
+        <include refid="RU_Task_Join_Tables"/>
+        <include refid="Search_Conditions"/>
+        group by RES.TASK_DEF_KEY_
     </select>
 
     <select id="findHistoric" parameterType="hashmap" resultMap="BaseResultMap">
         select distinct
         <include refid="Historic_Column_List"/>, ENT.REQUEST_TIME
         <include refid="HI_Task_Join_Tables"/>
-        <where>
-            <include refid="Search_Conditions"/>
-        </where>
+        <include refid="Search_Conditions"/>
         ${orderBy}
     </select>
 
     <select id="countHistoricTasks" parameterType="hashmap" resultType="long">
         select count(distinct HIS.ID_)
         <include refid="HI_Task_Join_Tables"/>
-        <where>
-            <include refid="Search_Conditions"/>
-        </where>
+        <include refid="Search_Conditions"/>
     </select>
 
     <select id="selectHistoric" parameterType="string" resultMap="BaseResultMap">

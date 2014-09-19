@@ -33,12 +33,12 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
     @Resource
     private ProcessObjectDao processObjectDao;
     @Resource
-    private TaskObjectDao    taskObjectDao;
+    private TaskObjectDao taskObjectDao;
 
     @Resource
     private RuntimeService runtimeService;
     @Resource
-    private TaskService    taskService;
+    private TaskService taskService;
 
     @Override
     public Page findRequests(ProcessQuery query) {
@@ -78,6 +78,11 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
     @Override
     public long countTasks(UserTaskQuery query) {
         return taskObjectDao.countTasks(extractQuery(query));
+    }
+
+    @Override
+    public List<String> groupByTaskDefKey(UserTaskQuery query) {
+        return taskObjectDao.groupByTaskDefKey(extractQuery(query));
     }
 
     @Override

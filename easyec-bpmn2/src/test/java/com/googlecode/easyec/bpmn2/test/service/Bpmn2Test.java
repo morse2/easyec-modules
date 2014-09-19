@@ -200,6 +200,15 @@ public class Bpmn2Test extends BaseBpmn2Test {
     }
 
     @Test
+    public void groupByTask() {
+        List<String> list = queryProcessService.groupByTaskDefKey(
+            new UserTaskQuery().candidateUser("P499HXF").unclaimedTask()
+        );
+
+        System.out.println(list);
+    }
+
+    @Test
     @Rollback(false)
     public void addAttachment() throws WrongProcessValueException, ProcessPersistentException {
         Page page = new ProcessQuery()

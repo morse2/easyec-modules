@@ -134,6 +134,11 @@ public class UserTaskQuery extends CustomJoinQuery<UserTaskQuery> {
         return getSelf();
     }
 
+    public UserTaskQuery taskDefinitionKey(String taskDefinitionKey) {
+        addSearchTerm("taskDefinitionKey", taskDefinitionKey);
+        return getSelf();
+    }
+
     public UserTaskQuery orderByPriority(Sort.SortTypes direction) {
         addSort("HIS.PRIORITY_", direction);
         return getSelf();

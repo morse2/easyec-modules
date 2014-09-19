@@ -35,6 +35,8 @@ public interface QueryProcessService {
 
     long countTasks(UserTaskQuery query);
 
+    List<String> groupByTaskDefKey(UserTaskQuery query);
+
     Page findHistoricTasks(UserTaskHistoricQuery query);
 
     Page findHistoricTasks(UserTaskHistoricQuery query, int pageSize);
