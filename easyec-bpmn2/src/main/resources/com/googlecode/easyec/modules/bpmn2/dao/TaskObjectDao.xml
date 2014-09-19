@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.TaskObjectDao">
-    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.TaskObjectImpl">
+    <resultMap id="BaseResultMap"
+               extends="TaskDefinitionResultMap"
+               type="com.googlecode.easyec.modules.bpmn2.domain.impl.TaskObjectImpl">
         <id column="ID_" property="taskId" jdbcType="VARCHAR"/>
-        <result column="NAME_" property="taskName" jdbcType="VARCHAR"/>
         <result column="ASSIGNEE_" property="assignee" jdbcType="VARCHAR"/>
         <result column="OWNER_" property="owner" jdbcType="VARCHAR"/>
         <result column="CREATE_TIME_" property="createTime" jdbcType="TIMESTAMP"/>
@@ -28,14 +29,19 @@
                 />
     </resultMap>
 
+    <resultMap id="TaskDefinitionResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.TaskDefinitionImpl">
+        <result column="TASK_DEF_KEY_" property="taskKey" jdbcType="VARCHAR"/>
+        <result column="NAME_" property="taskName" jdbcType="VARCHAR"/>
+    </resultMap>
+
     <sql id="TaskOnly_Col_List">
-        RES.ID_, HIS.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_
+        RES.ID_, HIS.PROC_INST_ID_, HIS.TASK_DEF_KEY_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_
     </sql>
     <sql id="Base_Column_List">
-        RES.ID_, HIS.PROC_INST_ID_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_, HIS.PRIORITY_, ENT.REQUEST_TIME
+        RES.ID_, HIS.PROC_INST_ID_, HIS.TASK_DEF_KEY_, RES.NAME_, RES.ASSIGNEE_, RES.OWNER_, RES.CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, RES.DELEGATION_, HIS.PRIORITY_, ENT.REQUEST_TIME
     </sql>
     <sql id="Historic_Column_List">
-        HIS.ID_, HIS.PROC_INST_ID_, HIS.NAME_, HIS.ASSIGNEE_, HIS.OWNER_, HIS.START_TIME_ AS CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, HIS.PRIORITY_
+        HIS.ID_, HIS.PROC_INST_ID_, HIS.TASK_DEF_KEY_, HIS.NAME_, HIS.ASSIGNEE_, HIS.OWNER_, HIS.START_TIME_ AS CREATE_TIME_, HIS.FORM_KEY_, HIS.END_TIME_, HIS.PRIORITY_
     </sql>
 
     <sql id="RU_Task_Join_Tables">
@@ -224,11 +230,11 @@
         <include refid="Search_Conditions"/>
     </select>
 
-    <select id="groupByTaskDefKey" parameterType="hashmap" resultType="string">
-        select RES.TASK_DEF_KEY_
+    <select id="groupByTaskDefition" parameterType="hashmap" resultMap="TaskDefinitionResultMap">
+        select RES.TASK_DEF_KEY_, RES.NAME_
         <include refid="RU_Task_Join_Tables"/>
         <include refid="Search_Conditions"/>
-        group by RES.TASK_DEF_KEY_
+        group by RES.TASK_DEF_KEY_, RES.NAME_
     </select>
 
     <select id="findHistoric" parameterType="hashmap" resultMap="BaseResultMap">

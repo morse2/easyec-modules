@@ -2,6 +2,7 @@ package com.googlecode.easyec.modules.bpmn2.service;
 
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.TaskDefinition;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.query.ProcessQuery;
 import com.googlecode.easyec.modules.bpmn2.query.TaskConsignQuery;
@@ -35,7 +36,7 @@ public interface QueryProcessService {
 
     long countTasks(UserTaskQuery query);
 
-    List<String> groupByTaskDefKey(UserTaskQuery query);
+    List<TaskDefinition> groupByTaskDefinition(UserTaskQuery query);
 
     Page findHistoricTasks(UserTaskHistoricQuery query);
 

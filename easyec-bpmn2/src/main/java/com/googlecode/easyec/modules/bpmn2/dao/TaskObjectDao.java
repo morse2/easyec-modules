@@ -1,5 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.dao;
 
+import com.googlecode.easyec.modules.bpmn2.domain.TaskDefinition;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.spirit.dao.paging.Page;
 
@@ -47,12 +48,12 @@ public interface TaskObjectDao {
 
     /**
      * 根据流程任务的KEY，
-     * 来分组查询任务KEY列表
+     * 来分组查询任务定义列表
      *
      * @param params 查询条件
-     * @return 任务的KEY
+     * @return 任务定义对象
      */
-    List<String> groupByTaskDefKey(Map<String, Object> params);
+    List<TaskDefinition> groupByTaskDefition(Map<String, Object> params);
 
     /**
      * 分页查询历史用户任务信息

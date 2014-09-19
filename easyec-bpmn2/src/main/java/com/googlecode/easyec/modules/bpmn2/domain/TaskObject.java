@@ -1,8 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.domain;
 
 import com.googlecode.easyec.modules.bpmn2.domain.ctrl.TaskObjectCtrl;
-import com.googlecode.easyec.spirit.domain.DomainModel;
-import org.activiti.engine.task.DelegationState;
 
 import java.util.Date;
 import java.util.List;
@@ -12,11 +10,9 @@ import java.util.List;
  *
  * @author JunJie
  */
-public interface TaskObject extends DomainModel, TaskObjectCtrl {
+public interface TaskObject extends TaskDefinition, TaskObjectCtrl {
 
     String getTaskId();
-
-    String getTaskName();
 
     String getAssignee();
 

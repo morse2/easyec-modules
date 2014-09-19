@@ -15,34 +15,28 @@ import static org.activiti.engine.task.DelegationState.PENDING;
 /**
  * Created by 俊杰 on 2014/7/9.
  */
-public class TaskObjectImpl implements TaskObject {
+public class TaskObjectImpl extends TaskDefinitionImpl implements TaskObject {
 
     private String taskId;
-    private String taskName;
     private String assignee;
     private String owner;
-    private Date   createTime;
+    private Date createTime;
     private String formKey;
-    private Date   endTime;
+    private Date endTime;
 
     private DelegationState delegationState;
-    private ProcessObject   processObject;
+    private ProcessObject processObject;
 
     private ExtraTaskObject extraTask;
 
     /* 任务审批类型的备注列表 */
-    private List<CommentObject> approvedComments  = new ArrayList<CommentObject>();
+    private List<CommentObject> approvedComments = new ArrayList<CommentObject>();
     /* 任务批注类型的备注列表 */
     private List<CommentObject> annotatedComments = new ArrayList<CommentObject>();
 
     @Override
     public String getTaskId() {
         return taskId;
-    }
-
-    @Override
-    public String getTaskName() {
-        return taskName;
     }
 
     @Override
@@ -98,11 +92,6 @@ public class TaskObjectImpl implements TaskObject {
     @Override
     public void setTaskId(String taskId) {
         this.taskId = taskId;
-    }
-
-    @Override
-    public void setTaskName(String taskName) {
-        this.taskName = taskName;
     }
 
     @Override

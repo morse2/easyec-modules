@@ -3,6 +3,7 @@ package com.googlecode.easyec.bpmn2.test.service;
 import com.googlecode.easyec.bpmn2.test.BaseBpmn2Test;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.TaskDefinition;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.AttachmentObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessObjectImpl;
@@ -201,7 +202,7 @@ public class Bpmn2Test extends BaseBpmn2Test {
 
     @Test
     public void groupByTask() {
-        List<String> list = queryProcessService.groupByTaskDefKey(
+        List<TaskDefinition> list = queryProcessService.groupByTaskDefinition(
             new UserTaskQuery().candidateUser("P499HXF").unclaimedTask()
         );
 

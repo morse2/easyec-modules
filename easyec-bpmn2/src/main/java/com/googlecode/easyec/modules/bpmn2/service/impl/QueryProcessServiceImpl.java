@@ -5,6 +5,7 @@ import com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao;
 import com.googlecode.easyec.modules.bpmn2.dao.TaskObjectDao;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.TaskDefinition;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.query.ProcessQuery;
 import com.googlecode.easyec.modules.bpmn2.query.TaskConsignQuery;
@@ -81,8 +82,8 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
     }
 
     @Override
-    public List<String> groupByTaskDefKey(UserTaskQuery query) {
-        return taskObjectDao.groupByTaskDefKey(extractQuery(query));
+    public List<TaskDefinition> groupByTaskDefinition(UserTaskQuery query) {
+        return taskObjectDao.groupByTaskDefition(extractQuery(query));
     }
 
     @Override
