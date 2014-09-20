@@ -18,6 +18,7 @@ import org.activiti.engine.task.Task;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -54,11 +55,11 @@ public class ProcessServiceImpl implements ProcessService {
     @Resource
     private RepositoryService repositoryService;
     @Resource
-    private HistoryService    historyService;
+    private HistoryService historyService;
     @Resource
-    private RuntimeService    runtimeService;
+    private RuntimeService runtimeService;
     @Resource
-    private TaskService       taskService;
+    private TaskService taskService;
 
     private BusinessKeyGenerator businessKeyGenerator;
 
@@ -72,7 +73,7 @@ public class ProcessServiceImpl implements ProcessService {
         if (!DRAFT.equals(entity.getProcessStatus())) {
             throw new WrongProcessStatusException(
                 "This process' status isn't draft. Please check it. "
-                + "Process id: [" + processEntityId + "]."
+                    + "Process id: [" + processEntityId + "]."
             );
         }
 
@@ -105,7 +106,7 @@ public class ProcessServiceImpl implements ProcessService {
                 if (definition == null) {
                     throw new ProcessNotFoundException(
                         "Cannot find process definition info. Process definition id: ["
-                        + entity.getProcessDefinitionId() + "]."
+                            + entity.getProcessDefinitionId() + "]."
                     );
                 }
 
@@ -173,8 +174,8 @@ public class ProcessServiceImpl implements ProcessService {
         if (!DRAFT.equals(po.getProcessStatus()) || isNotBlank(po.getProcessInstanceId())) {
             throw new WrongProcessStatusException(
                 "The process' status isn't draft. So it doesn't start "
-                + "repeat. Please check it. Process id: ["
-                + po.getUidPk() + "]."
+                    + "repeat. Please check it. Process id: ["
+                    + po.getUidPk() + "]."
             );
         }
 
@@ -245,8 +246,8 @@ public class ProcessServiceImpl implements ProcessService {
             }
 
             processObjectDao.updateByPrimaryKey(po);
-
-            _copyProperties(po, entity);
+            // 复制对象属性
+            BeanUtils.copyProperties(po, entity);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
 
@@ -333,22 +334,10 @@ public class ProcessServiceImpl implements ProcessService {
         if (entity == null) {
             throw new ProcessNotFoundException(
                 "Process object cannot be found in system. Process id: ["
-                + processEntityId + "]."
+                    + processEntityId + "]."
             );
         }
 
         return entity;
-    }
-
-    /* 拷贝流程基本数据给业务对象 */
-    private void _copyProperties(ProcessObject source, ProcessObject dest) {
-        dest.setProcessDefinitionId(source.getProcessDefinitionId());
-        dest.setProcessInstanceId(source.getProcessInstanceId());
-        dest.setProcessStatus(source.getProcessStatus());
-        dest.setBusinessKey(source.getBusinessKey());
-        dest.setRequestTime(source.getRequestTime());
-
-        dest.setRejected(source.isRejected());
-        dest.setPartialRejected(source.isPartialRejected());
     }
 }

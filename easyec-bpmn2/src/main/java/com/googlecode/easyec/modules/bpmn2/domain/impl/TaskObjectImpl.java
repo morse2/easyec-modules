@@ -131,4 +131,12 @@ public class TaskObjectImpl extends TaskDefinitionImpl implements TaskObject {
     public DelegationState getDelegationState() {
         return delegationState;
     }
+
+    public void setApprovedComments(List<CommentObject> approvedComments) {
+        this.approvedComments = approvedComments;
+    }
+
+    public void setAnnotatedComments(List<CommentObject> annotatedComments) {
+        this.annotatedComments = annotatedComments;
+    }
 }

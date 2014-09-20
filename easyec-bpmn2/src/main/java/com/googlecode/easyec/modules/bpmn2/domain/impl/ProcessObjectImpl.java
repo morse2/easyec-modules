@@ -34,7 +34,7 @@ import static org.apache.commons.collections.functors.AnyPredicate.getInstance;
 @Identifier("SEQ_PROCESS_ENTITY")
 public class ProcessObjectImpl implements ProcessObject {
 
-    private static final long serialVersionUID = -536687151753861409L;
+    private static final long serialVersionUID = 1271846728576533484L;
     private Long uidPk;
     private String processDefinitionId;
     private String processDefinitionKey;
@@ -258,5 +258,13 @@ public class ProcessObjectImpl implements ProcessObject {
     @Override
     public boolean addAttachment(AttachmentObject attachment) {
         return attachment != null && attachments.add(attachment);
+    }
+
+    public void setComments(List<CommentObject> comments) {
+        this.comments = comments;
+    }
+
+    public void setAttachments(List<AttachmentObject> attachments) {
+        this.attachments = attachments;
     }
 }
