@@ -8,11 +8,11 @@ import java.util.Map;
 
 public interface ExtraTaskConsignDao {
 
-    int deleteByPrimaryKey(String taskId);
+    int deleteByPrimaryKey(Long uidPk);
 
     int insert(ExtraTaskConsign record);
 
-    ExtraTaskConsign selectByPrimaryKey(String taskId);
+    ExtraTaskConsign selectByPrimaryKey(Long uidPk);
 
     int updateByPrimaryKey(ExtraTaskConsign record);
 

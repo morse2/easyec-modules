@@ -452,10 +452,10 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @throws Throwable
      */
     @After(
-        value = "execution(* com.*..*.service.*Service.consign(..)) && args(task,userId,..)",
-        argNames = "task,userId"
+        value = "execution(* com.*..*.service.*Service.consign(..)) && args(task,userId,comment,..)",
+        argNames = "task,userId,comment"
     )
-    public void afterConsignTask(TaskObject task, String userId) throws Throwable {
+    public void afterConsignTask(TaskObject task, String userId, String comment) throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug(
                 "Prepare to consign this task. Task id: ["
@@ -464,7 +464,12 @@ public final class ProcessOperateInterceptor implements Ordered {
         }
 
         try {
-            userTaskService.delegateTask(task, userId);
+            // 为委托操作创建备注
+            String commentId = null;
+            CommentObject co = userTaskService.createComment(task, BY_TASK_ANNOTATED, comment);
+            if (co != null) commentId = co.getId();
+            // 执行委托任务的操作
+            userTaskService.delegateTask(task, userId, commentId);
             // TODO 也许需要发送邮件提醒
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);

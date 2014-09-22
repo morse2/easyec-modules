@@ -9,7 +9,6 @@ import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.CommentObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl;
-import com.googlecode.easyec.modules.bpmn2.query.TaskConsignQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
@@ -165,18 +164,21 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
-    public void delegateTask(TaskObject task, String userId) throws ProcessPersistentException {
+    public void delegateTask(TaskObject task, String userId, String commentId) throws ProcessPersistentException {
         try {
             ProcessObject po = task.getProcessObject();
             taskService.delegateTask(task.getTaskId(), userId);
 
-            // 记录此任务委托的历史信息
+            // 记录此任务已委托的历史信息
+            Date currentTime = new Date();
             ExtraTaskConsign con = new ExtraTaskConsignImpl();
             con.setConsignee(userId);
+            con.setCommentId(commentId);
             con.setTaskId(task.getTaskId());
             con.setProcessInstanceId(po.getProcessInstanceId());
-            con.setStatus(TASK_CONSIGN_PENDING);
-            con.setCreateTime(new Date());
+            con.setStatus(TASK_CONSIGN_CONSIGNED);
+            con.setCreateTime(currentTime);
+            con.setFinishTime(currentTime);
 
             int i = extraTaskConsignDao.insert(con);
             logger.debug("Effect rows of inserting BPM_HI_TASK_CONSIGN. [{}].", i);
@@ -192,31 +194,26 @@ public class UserTaskServiceImpl implements UserTaskService {
     throws ProcessPersistentException {
         try {
             // 创建批注
-            createComment(task, type, comment);
-            // 标记任务已经解决
+            String commentId = null;
+            CommentObject co = createComment(task, type, comment);
+            if (co != null) commentId = co.getId();
+
+            // 创建任务委托的历史记录
+            Date currentTime = new Date();
+            ExtraTaskConsign con = new ExtraTaskConsignImpl();
+            con.setConsignee(task.getAssignee());
+            con.setCommentId(commentId);
+            con.setTaskId(task.getTaskId());
+            con.setProcessInstanceId(task.getProcessObject().getProcessInstanceId());
+            con.setStatus(agree ? TASK_CONSIGN_AGREED : TASK_CONSIGN_DISAGREED);
+            con.setCreateTime(currentTime);
+            con.setFinishTime(currentTime);
+
+            int i = extraTaskConsignDao.insert(con);
+            logger.debug("Effect rows of inserting BPM_HI_TASK_CONSIGN. [{}].", i);
+
+            // 标记当前流程的任务已经解决
             taskService.resolveTask(task.getTaskId(), variables);
-            // 查询任务委托历史的记录
-            List<ExtraTaskConsign> list
-                = new TaskConsignQuery()
-                .taskId(task.getTaskId())
-                .consignee(task.getAssignee())
-                .status(agree ? TASK_CONSIGN_PENDING : TASK_CONSIG_DISAGREED)
-                .list();
-
-            if (isNotEmpty(list)) {
-                // 标记任务委托历史记录已完成
-                logger.info(
-                    "To finish task of consignment. Task id: [" + task.getTaskId() + "], consignee: [" +
-                        task.getAssignee() + "]."
-                );
-
-                ExtraTaskConsign con = list.get(0);
-                con.setStatus(TASK_CONSIGN_AGREED);
-                con.setFinishTime(new Date());
-
-                int i = extraTaskConsignDao.updateByPrimaryKey(con);
-                logger.debug("Effect rows of updating BPM_HI_TASK_CONSIGN. [{}].", i);
-            }
         } catch (ProcessPersistentException e) {
             throw e;
         } catch (Exception e) {
@@ -348,6 +345,7 @@ public class UserTaskServiceImpl implements UserTaskService {
                     obj.setUserId(c.getUserId());
                     obj.setContent(comment);
                     obj.setType(thisType);
+                    obj.setId(c.getId());
 
                     return obj;
                 }

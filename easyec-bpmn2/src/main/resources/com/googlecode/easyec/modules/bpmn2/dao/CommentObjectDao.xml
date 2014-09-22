@@ -12,8 +12,8 @@
                      select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao.selectByPrimaryKey"
                 />
 
-        <association property="extraTaskConsign" column="TASK_ID_"
-                     select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao.selectByTaskId"
+        <association property="extraTaskConsign" column="ID_"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao.selectByCommentId"
                      />
     </resultMap>
 

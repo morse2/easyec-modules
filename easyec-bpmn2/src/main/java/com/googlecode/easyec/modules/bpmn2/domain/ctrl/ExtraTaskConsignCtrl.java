@@ -9,6 +9,8 @@ public interface ExtraTaskConsignCtrl {
 
     void setTaskId(String taskId);
 
+    void setCommentId(String commentId);
+
     void setProcessInstanceId(String processInstanceId);
 
     void setConsignee(String consignee);

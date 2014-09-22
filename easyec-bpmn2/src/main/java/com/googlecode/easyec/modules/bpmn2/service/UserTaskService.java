@@ -50,7 +50,7 @@ public interface UserTaskService {
     void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
     throws ProcessPersistentException;
 
-    void delegateTask(TaskObject task, String userId) throws ProcessPersistentException;
+    void delegateTask(TaskObject task, String userId, String commentId) throws ProcessPersistentException;
 
     void resolveTask(TaskObject task, boolean agree, CommentTypes type, String comment, Map<String, Object> variables)
     throws ProcessPersistentException;

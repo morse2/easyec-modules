@@ -1,17 +1,31 @@
 package com.googlecode.easyec.modules.bpmn2.domain.impl;
 
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
+import com.googlecode.easyec.spirit.dao.id.annotation.Identifier;
 
 import java.util.Date;
 
+@Identifier("SEQ_EXTRA_TASK_CONSIGN")
 public class ExtraTaskConsignImpl implements ExtraTaskConsign {
 
+    private Long uidPk;
     private String taskId;
+    private String commentId;
     private String processInstanceId;
     private String consignee;
     private String status;
-    private Date   createTime;
-    private Date   finishTime;
+    private Date createTime;
+    private Date finishTime;
+
+    @Override
+    public Long getUidPk() {
+        return uidPk;
+    }
+
+    @Override
+    public void setUidPk(Long uidPk) {
+        this.uidPk = uidPk;
+    }
 
     @Override
     public String getTaskId() {
@@ -21,6 +35,16 @@ public class ExtraTaskConsignImpl implements ExtraTaskConsign {
     @Override
     public void setTaskId(String taskId) {
         this.taskId = taskId == null ? null : taskId.trim();
+    }
+
+    @Override
+    public String getCommentId() {
+        return commentId;
+    }
+
+    @Override
+    public void setCommentId(String commentId) {
+        this.commentId = commentId;
     }
 
     @Override
