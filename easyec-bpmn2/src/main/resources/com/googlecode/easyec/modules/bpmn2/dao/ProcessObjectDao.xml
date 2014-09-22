@@ -165,7 +165,7 @@
     </select>
 
     <select id="find" parameterType="hashmap" resultMap="BaseResultMap">
-        select
+        select distinct
         <include refid="Base_Column_List"/>
         <include refid="Base_From_Table"/>
         <include refid="Join_Admin_SQL"/>
