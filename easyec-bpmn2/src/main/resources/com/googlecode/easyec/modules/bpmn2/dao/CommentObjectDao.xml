@@ -8,6 +8,10 @@
         <result column="TYPE_" property="type" jdbcType="VARCHAR"/>
         <result column="TIME_" property="createTime" jdbcType="VARCHAR"/>
 
+        <association property="task" column="TASK_ID_"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.TaskObjectDao.selectHistoric"
+                />
+
         <association property="extraTask" column="TASK_ID_"
                      select="com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao.selectByPrimaryKey"
                 />

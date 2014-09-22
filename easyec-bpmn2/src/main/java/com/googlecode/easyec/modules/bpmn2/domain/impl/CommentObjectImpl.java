@@ -3,9 +3,12 @@ package com.googlecode.easyec.modules.bpmn2.domain.impl;
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
+import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 
 import java.util.Date;
+
+import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_APPLICANT_ROLE;
 
 /**
  * 流程的注解实体类。
@@ -23,6 +26,7 @@ public class CommentObjectImpl implements CommentObject {
     private CommentTypes type;
     private Date createTime;
 
+    private TaskObject task;
     private ExtraTaskObject extraTask;
     private ExtraTaskConsign extraTaskConsign;
 
@@ -77,8 +81,20 @@ public class CommentObjectImpl implements CommentObject {
     }
 
     @Override
+    public TaskObject getTask() {
+        return task;
+    }
+
+    @Override
     public ExtraTaskObject getExtraTask() {
         return extraTask;
+    }
+
+    @Override
+    public String getTaskRole() {
+        TaskObject task = getTask();
+        if (task == null) return I18_APPLICANT_ROLE;
+        return task.getTaskKey();
     }
 
     public ExtraTaskConsign getExtraTaskConsign() {

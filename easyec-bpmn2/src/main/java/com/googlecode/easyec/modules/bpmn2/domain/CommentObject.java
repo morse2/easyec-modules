@@ -23,7 +23,11 @@ public interface CommentObject extends DomainModel, CommentObjectCtrl {
 
     Date getCreateTime();
 
+    TaskObject getTask();
+
     ExtraTaskObject getExtraTask();
+
+    String getTaskRole();
 
     String getStatus();
 }

@@ -26,4 +26,9 @@ public final class ProcessConstant {
      * 流程申请人提交流程申请的备注
      */
     public static final String I18_APPLICANT_SUBMIT = "_I18.applicant.submit";
+
+    /**
+     * 流程申请人i18n的角色名称
+     */
+    public static final String I18_APPLICANT_ROLE = "task.role.applicant";
 }
