@@ -9,6 +9,7 @@ import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import java.util.Date;
 
 import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_APPLICANT_ROLE;
+import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_CONSIGN_ROLE;
 
 /**
  * 流程的注解实体类。
@@ -92,8 +93,14 @@ public class CommentObjectImpl implements CommentObject {
 
     @Override
     public String getTaskRole() {
+        // 如果有EXTRA CONSIGN对象，则标记角色为委托人
+        ExtraTaskConsign consign = getExtraTaskConsign();
+        if (consign != null) return I18_CONSIGN_ROLE;
+
+        // 如果备注没有关联任何任务，则标记角色为申请人
         TaskObject task = getTask();
         if (task == null) return I18_APPLICANT_ROLE;
+
         return task.getTaskKey();
     }
 
