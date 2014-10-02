@@ -67,4 +67,6 @@ public interface UserTaskService {
     void saveNewTask(NewTask newTask);
 
     void setDelegatedUser(String taskId, String delegatedUser) throws ProcessPersistentException;
+
+    void setExtraTaskStatus(String taskId, String status) throws ProcessPersistentException;
 }

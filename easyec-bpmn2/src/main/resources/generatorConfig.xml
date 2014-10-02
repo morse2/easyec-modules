@@ -6,7 +6,7 @@
 <generatorConfiguration>
     <context id="Depots" targetRuntime="MyBatis3">
         <jdbcConnection driverClass="oracle.jdbc.driver.OracleDriver"
-                        connectionURL="jdbc:oracle:thin:@164.39.68.43:1521:tntprtl"
+                        connectionURL="jdbc:oracle:thin:@192.168.1.12:1521:tnt"
                         userId="ivc"
                         password="ivc"
                 />
@@ -32,16 +32,50 @@
             <property name="trimStrings" value="true"/>
         </javaClientGenerator>
 
-        <table tableName="BPM_HI_TASK_EXTRA"
-               domainObjectName="ExtraTaskObject"
+        <table tableName="BPM_USER"
+               domainObjectName="User"
                enableCountByExample="false"
                enableDeleteByExample="false"
                enableSelectByExample="false"
                enableUpdateByExample="false">
 
-            <columnOverride column="TASK_ASSIGNEE" property="assignee" javaType="java.lang.String" jdbcType="VARCHAR"/>
-            <columnOverride column="TASK_STATUS" property="status" javaType="java.lang.String" jdbcType="VARCHAR"/>
-            <columnOverride column="PROC_INST_ID" property="processInstanceId" javaType="java.lang.String" jdbcType="VARCHAR"/>
+            <columnOverride column="USER_ID" property="userId" javaType="java.lang.String" jdbcType="VARCHAR"/>
+            <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
+        </table>
+        <table tableName="BPM_GROUP"
+               domainObjectName="Group"
+               enableCountByExample="false"
+               enableDeleteByExample="false"
+               enableSelectByExample="false"
+               enableUpdateByExample="false">
+
+            <columnOverride column="UIDPK" property="uidPk" javaType="java.lang.Long" jdbcType="NUMERIC"/>
+            <columnOverride column="GROUP_NAME" property="name" javaType="java.lang.String" jdbcType="NUMERIC"/>
+            <columnOverride column="DEFAULT_" property="_default" javaType="boolean" jdbcType="SMALLINT"/>
+            <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
+        </table>
+        <table tableName="BPM_PROC_GROUP_RELATION"
+               domainObjectName="ProcessGroupRelation"
+               enableCountByExample="false"
+               enableDeleteByExample="false"
+               enableSelectByExample="false"
+               enableUpdateByExample="false">
+
+            <columnOverride column="ROLE_CODE" property="roleCode" javaType="java.lang.String" jdbcType="NUMERIC"/>
+            <columnOverride column="DEFAULT_" property="_default" javaType="boolean" jdbcType="SMALLINT"/>
+            <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
+        </table>
+        <table tableName="BPM_GROUP_USER_RELATION"
+               domainObjectName="GroupUserRelation"
+               enableCountByExample="false"
+               enableDeleteByExample="false"
+               enableSelectByExample="false"
+               enableUpdateByExample="false">
+
+            <columnOverride column="UIDPK" property="uidPk" javaType="java.lang.Long" jdbcType="NUMERIC"/>
+            <columnOverride column="GROUP_NAME" property="name" javaType="java.lang.String" jdbcType="NUMERIC"/>
+            <columnOverride column="DEFAULT_" property="_default" javaType="boolean" jdbcType="SMALLINT"/>
+            <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
         </table>
     </context>
 </generatorConfiguration>

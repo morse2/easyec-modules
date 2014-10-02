@@ -322,6 +322,26 @@ public class UserTaskServiceImpl implements UserTaskService {
         }
     }
 
+    @Override
+    public void setExtraTaskStatus(String taskId, String status) throws ProcessPersistentException {
+        ExtraTaskObject obj = extraTaskObjectDao.selectByPrimaryKey(taskId);
+        if (obj == null) {
+            throw new ProcessPersistentException(
+                "No Extra-task object was found. Please create extra-task firstly. Task id: [" + taskId + "]."
+            );
+        }
+
+        obj.setStatus(status);
+
+        try {
+            int i = extraTaskObjectDao.updateByPrimaryKey(obj);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+
+            throw new ProcessPersistentException(e);
+        }
+    }
+
     /* 创建备注的默认方法 */
     private CommentObject _createComment(String taskId, String processInstanceId, CommentTypes type, String comment)
         throws ProcessPersistentException {

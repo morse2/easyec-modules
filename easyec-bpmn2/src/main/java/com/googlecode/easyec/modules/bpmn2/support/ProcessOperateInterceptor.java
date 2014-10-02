@@ -9,6 +9,7 @@ import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
+import com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -18,6 +19,7 @@ import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
+import org.springframework.util.Assert;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -28,10 +30,13 @@ import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_REJECTED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
+import static com.googlecode.easyec.modules.bpmn2.support.impl.CommentBehavior.CommentBehaviorBuilder;
+import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior.TaskAuditBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
 import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_APPLICANT_SUBMIT;
 import static org.activiti.engine.impl.identity.Authentication.getAuthenticatedUserId;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
  * 流程过程操作的业务拦截类。
@@ -214,6 +219,8 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param comment   审批内容
      * @param variables 任务参数
      * @throws Throwable
+     * @see #afterCompleted(TaskObject, TaskAuditBehavior)
+     * @deprecated
      */
     @After(
         value = "execution(* com.*..*.service.*Service.approve(..)) && args(task,comment,variables,..)",
@@ -231,6 +238,8 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param variables 任务参数
      * @param commented 标识是否需要创建备注
      * @throws Throwable
+     * @see #afterCompleted(TaskObject, TaskAuditBehavior)
+     * @deprecated
      */
     @After(
         value = "execution(* com.*..*.service.*Service.approve(..)) && args(task,comment,variables,commented,..)",
@@ -242,19 +251,14 @@ public final class ProcessOperateInterceptor implements Ordered {
             logger.debug("Prepare to approve this task. Task id: [{}].", task.getTaskId());
         }
 
-        try {
-            userTaskService.approveTask(task, comment, variables, commented);
+        TaskAuditBehaviorBuilder builder = new TaskAuditBehaviorBuilder()
+            .comment(new CommentBehaviorBuilder().comment(comment).build())
+            .variables(variables)
+            .approve();
 
-            // 执行邮件发送
-            _loopTasksForSendingMail(
-                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
-                FIRE_TYPE_TASK_ASSIGNED, task, comment
-            );
-        } catch (ProcessPersistentException e) {
-            logger.error(e.getMessage(), e);
+        if (commented) builder.commented();
 
-            throw new DataPersistenceException(e);
-        }
+        _doApprove(task, builder.build());
 
         if (logger.isDebugEnabled()) {
             logger.debug("Task has been approved. Task id: [{}].", task.getTaskId());
@@ -268,6 +272,8 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param comment   拒绝内容
      * @param variables 任务参数
      * @throws Throwable
+     * @see #afterCompleted(TaskObject, TaskAuditBehavior)
+     * @deprecated
      */
     @After(
         value = "execution(* com.*..*.service.*Service.reject(..)) && args(task,comment,variables,..)",
@@ -285,6 +291,8 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param variables 任务参数
      * @param commented 标识是否需要创建备注
      * @throws Throwable
+     * @see #afterCompleted(TaskObject, TaskAuditBehavior)
+     * @deprecated
      */
     @After(
         value = "execution(* com.*..*.service.*Service.reject(..)) && args(task,comment,variables,commented,..)",
@@ -292,24 +300,20 @@ public final class ProcessOperateInterceptor implements Ordered {
     )
     public void afterReject(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
         throws Throwable {
-        try {
-            userTaskService.rejectTask(task, comment, variables, commented);
+        TaskAuditBehaviorBuilder builder = new TaskAuditBehaviorBuilder()
+            .comment(new CommentBehaviorBuilder().comment(comment).build())
+            .variables(variables)
+            .reject();
 
-            // 执行邮件发送
-            _loopTasksForSendingMail(
-                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
-                FIRE_TYPE_TASK_REJECTED, task, comment
-            );
-        } catch (ProcessPersistentException e) {
-            logger.error(e.getMessage(), e);
+        if (commented) builder.commented();
 
-            throw new DataPersistenceException(e);
-        }
+        _doReject(task, builder.build());
 
         if (logger.isDebugEnabled()) {
             logger.debug("Task has been partially rejected. Task id: [{}].", task.getTaskId());
         }
     }
+
 
     /**
      * 部分拒绝任务的后置方法。
@@ -318,6 +322,8 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param comment   拒绝内容
      * @param variables 任务参数
      * @throws Throwable
+     * @see #afterCompleted(TaskObject, TaskAuditBehavior)
+     * @deprecated
      */
     @After(
         value = "execution(* com.*..*.service.*Service.rejectPartially(..)) && args(task,comment,variables,..)",
@@ -335,6 +341,8 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param variables 任务参数
      * @param commented 标识是否需要创建备注
      * @throws Throwable
+     * @see #afterCompleted(TaskObject, TaskAuditBehavior)
+     * @deprecated
      */
     @After(
         value = "execution(* com.*..*.service.*Service.rejectPartially(..)) && args(task,comment,variables,commented,..)",
@@ -342,26 +350,59 @@ public final class ProcessOperateInterceptor implements Ordered {
     )
     public void afterPartialReject(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
         throws Throwable {
-        try {
-            userTaskService.rejectTaskPartially(task, comment, variables, commented);
+        TaskAuditBehaviorBuilder builder = new TaskAuditBehaviorBuilder()
+            .comment(new CommentBehaviorBuilder().comment(comment).build())
+            .variables(variables)
+            .partialReject();
 
-            // 执行邮件发送
-            _loopTasksForSendingMail(
-                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
-                FIRE_TYPE_TASK_ASSIGNED, task, comment
-            );
+        if (commented) builder.commented();
 
-            // 邮件通知申请人
-            /* 此处不发送被拒绝的邮件，需要发送此类邮件，请手动调用 */
-            /*sendMail(task, task, comment, FIRE_TYPE_TASK_REJECTED);*/
-        } catch (ProcessPersistentException e) {
-            logger.error(e.getMessage(), e);
-
-            throw new DataPersistenceException(e);
-        }
+        _doPartialReject(task, builder.build());
 
         if (logger.isDebugEnabled()) {
             logger.debug("Task has been partially rejected. Task id: [{}].", task.getTaskId());
+        }
+    }
+
+    /**
+     * 任务完成的后置方法
+     *
+     * @param task     任务对象
+     * @param behavior 任务审批行为对象
+     * @throws Throwable
+     */
+    @After(
+        value = "execution(* com.*..*.service.*Service.complete(..)) && args(task,behavior,..)",
+        argNames = "task,behavior"
+    )
+    public void afterCompleted(TaskObject task, TaskAuditBehavior behavior) throws Throwable {
+        Assert.notNull(task, "TaskObject is null.");
+        Assert.notNull(behavior, "TaskAuditBehavior object is null.");
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Prepare to complete current task: [{}].", task.getTaskId());
+        }
+
+        // 执行通过、拒绝、部分拒绝的逻辑
+        if (behavior.isApproved()) _doApprove(task, behavior);
+        else if (behavior.isRejected()) _doReject(task, behavior);
+        else if (behavior.isPartialRejected()) _doPartialReject(task, behavior);
+        else logger.warn("No audit logic should be executed.");
+
+        // 如果任务状态不为空，则更新任务扩展表的状态
+        if (isNotBlank(behavior.getStatus())) {
+            userTaskService.setExtraTaskStatus(
+                task.getTaskId(), behavior.getStatus()
+            );
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Task completed. {");
+            logger.debug("\tProcess key: [{}].", task.getProcessObject().getProcessDefinitionKey());
+            logger.debug("\tTask id: [{}].", task.getTaskId());
+            logger.debug("\tTask key: [{}].", task.getTaskKey());
+            logger.debug("\tTask assignee: [{}].", task.getAssignee());
+            logger.debug("}.");
         }
     }
 
@@ -526,6 +567,73 @@ public final class ProcessOperateInterceptor implements Ordered {
     }
 
     // ----- private method here
+    /* 执行部分拒绝任务的逻辑 */
+    private void _doPartialReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
+        try {
+            userTaskService.rejectTaskPartially(
+                task, behavior.getComment(),
+                behavior.getVariables(),
+                behavior.isCommented()
+            );
+
+            // 执行邮件发送
+            _loopTasksForSendingMail(
+                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                FIRE_TYPE_TASK_ASSIGNED, task, behavior.getComment()
+            );
+
+            // 邮件通知申请人
+            /* 此处不发送被拒绝的邮件，需要发送此类邮件，请手动调用 */
+            /*sendMail(task, task, comment, FIRE_TYPE_TASK_REJECTED);*/
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
+    /* 执行拒绝任务的逻辑 */
+    private void _doReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
+        try {
+            userTaskService.rejectTask(
+                task, behavior.getComment(),
+                behavior.getVariables(),
+                behavior.isCommented()
+            );
+
+            // 执行邮件发送
+            _loopTasksForSendingMail(
+                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                FIRE_TYPE_TASK_REJECTED, task, behavior.getComment()
+            );
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
+    /* 执行审批通过的逻辑 */
+    private void _doApprove(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
+        try {
+            userTaskService.approveTask(
+                task, behavior.getComment(),
+                behavior.getVariables(),
+                behavior.isCommented()
+            );
+
+            // 执行邮件发送
+            _loopTasksForSendingMail(
+                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                FIRE_TYPE_TASK_ASSIGNED, task, behavior.getComment()
+            );
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
     /* 查询下一个节点的用户任务列表 */
     private List<TaskObject> _findNextTasks(String processInstanceId) {
         return new UserTaskQuery().processInstanceId(processInstanceId).list();
