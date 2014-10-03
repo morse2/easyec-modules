@@ -134,7 +134,7 @@ public class TaskAuditBehavior {
 
         public TaskAuditBehavior build() {
             Assert.isTrue(
-                !behavior.approved && !behavior.rejected && !behavior.partialRejected,
+                behavior.approved || behavior.rejected || behavior.partialRejected,
                 "You didn't indicate audit result."
             );
 
