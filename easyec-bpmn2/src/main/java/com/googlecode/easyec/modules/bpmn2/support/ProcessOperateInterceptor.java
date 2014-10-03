@@ -252,11 +252,12 @@ public final class ProcessOperateInterceptor implements Ordered {
         }
 
         TaskAuditBehaviorBuilder builder = new TaskAuditBehaviorBuilder()
-            .comment(new CommentBehaviorBuilder().comment(comment).build())
             .variables(variables)
             .approve();
 
-        if (commented) builder.commented();
+        if (commented) {
+            builder.comment(new CommentBehaviorBuilder().comment(comment).build());
+        }
 
         _doApprove(task, builder.build());
 
@@ -301,11 +302,12 @@ public final class ProcessOperateInterceptor implements Ordered {
     public void afterReject(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
         throws Throwable {
         TaskAuditBehaviorBuilder builder = new TaskAuditBehaviorBuilder()
-            .comment(new CommentBehaviorBuilder().comment(comment).build())
             .variables(variables)
             .reject();
 
-        if (commented) builder.commented();
+        if (commented) {
+            builder.comment(new CommentBehaviorBuilder().comment(comment).build());
+        }
 
         _doReject(task, builder.build());
 
@@ -351,11 +353,12 @@ public final class ProcessOperateInterceptor implements Ordered {
     public void afterPartialReject(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
         throws Throwable {
         TaskAuditBehaviorBuilder builder = new TaskAuditBehaviorBuilder()
-            .comment(new CommentBehaviorBuilder().comment(comment).build())
             .variables(variables)
             .partialReject();
 
-        if (commented) builder.commented();
+        if (commented) {
+            builder.comment(new CommentBehaviorBuilder().comment(comment).build());
+        }
 
         _doPartialReject(task, builder.build());
 

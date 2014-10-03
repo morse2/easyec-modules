@@ -17,7 +17,7 @@ public class TaskAuditBehavior {
     private boolean approved;
     private boolean rejected;
     private boolean partialRejected;
-    private boolean commented = true;
+    private boolean commented;
 
     private String status;
 
@@ -29,7 +29,12 @@ public class TaskAuditBehavior {
     protected TaskAuditBehavior() { /* no op */ }
 
     protected TaskAuditBehavior(CommentBehavior commentBehavior) {
+        setComment(commentBehavior);
+    }
+
+    protected void setComment(CommentBehavior commentBehavior) {
         this.commentBehavior = commentBehavior;
+        this.commented = (this.commentBehavior != null);
     }
 
     public String getComment() {
@@ -99,11 +104,6 @@ public class TaskAuditBehavior {
             behavior.partialRejected = true;
             behavior.approved = false;
             behavior.rejected = false;
-            return this;
-        }
-
-        public TaskAuditBehaviorBuilder commented() {
-            behavior.commented = true;
             return this;
         }
 
