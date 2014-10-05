@@ -19,7 +19,7 @@ public interface CommentObject extends DomainModel, CommentObjectCtrl {
 
     String getContent();
 
-    CommentTypes getType();
+    String getType();
 
     Date getCreateTime();
 

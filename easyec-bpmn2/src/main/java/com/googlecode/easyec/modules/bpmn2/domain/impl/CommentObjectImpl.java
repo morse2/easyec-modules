@@ -4,10 +4,11 @@ import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
-import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 
 import java.util.Date;
 
+import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
+import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_APPLICANT_ROLE;
 import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_CONSIGN_ROLE;
 
@@ -24,7 +25,7 @@ public class CommentObjectImpl implements CommentObject {
     private String id;
     private String userId;
     private String content;
-    private CommentTypes type;
+    private String type;
     private Date createTime;
 
     private TaskObject task;
@@ -47,7 +48,7 @@ public class CommentObjectImpl implements CommentObject {
     }
 
     @Override
-    public CommentTypes getType() {
+    public String getType() {
         return type;
     }
 
@@ -72,7 +73,7 @@ public class CommentObjectImpl implements CommentObject {
     }
 
     @Override
-    public void setType(CommentTypes type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -110,14 +111,13 @@ public class CommentObjectImpl implements CommentObject {
 
     @Override
     public String getStatus() {
-        switch (getType()) {
-            case BY_TASK_APPROVAL:
-                return _getExtraTaskStatus();
-            case BY_TASK_ANNOTATED:
-                return _getExtraTaskConsignStatus();
+        if (BY_TASK_APPROVAL.name().equalsIgnoreCase(getType())) {
+            return _getExtraTaskStatus();
+        } else if (BY_TASK_ANNOTATED.name().equalsIgnoreCase(getType())) {
+            return _getExtraTaskConsignStatus();
         }
 
-        return null;
+        return getType();
     }
 
     private String _getExtraTaskStatus() {

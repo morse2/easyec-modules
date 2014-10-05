@@ -82,7 +82,7 @@ public class TaskAuditBehavior {
         private TaskAuditBehavior behavior = new TaskAuditBehavior();
 
         public TaskAuditBehaviorBuilder comment(CommentBehavior commentBehavior) {
-            behavior.commentBehavior = commentBehavior;
+            this.behavior.setComment(commentBehavior);
             return this;
         }
 

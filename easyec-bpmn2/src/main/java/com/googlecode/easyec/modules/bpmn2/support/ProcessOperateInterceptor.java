@@ -9,6 +9,7 @@ import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
+import com.googlecode.easyec.modules.bpmn2.support.impl.ProcessStartBehavior;
 import com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -29,11 +30,9 @@ import java.util.Map;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_ASSIGNED;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_REJECTED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
-import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.support.impl.CommentBehavior.CommentBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior.TaskAuditBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
-import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.I18_APPLICANT_SUBMIT;
 import static org.activiti.engine.impl.identity.Authentication.getAuthenticatedUserId;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -155,15 +154,15 @@ public final class ProcessOperateInterceptor implements Ordered {
     /**
      * 创建流程处理的环绕方法。
      *
-     * @param entity 流程实体对象
-     * @param params 流程过程参数
+     * @param entity   流程实体对象
+     * @param behavior 流程启动行为对象
      * @throws Throwable
      */
     @Around(
-        value = "execution(* com.*..*.service.*Service.start(..)) && args(entity,params,..)",
-        argNames = "jp,entity,params"
+        value = "execution(* com.*..*.service.*Service.start(..)) && args(entity,behavior,..)",
+        argNames = "jp,entity,behavior"
     )
-    public Object aroundStart(ProceedingJoinPoint jp, ProcessObject entity, Map<String, Object> params)
+    public Object aroundStart(ProceedingJoinPoint jp, ProcessObject entity, ProcessStartBehavior behavior)
         throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug("After saving business data, then we start this process. {");
@@ -180,9 +179,16 @@ public final class ProcessOperateInterceptor implements Ordered {
             // 回调被拦截的业务方法
             ret = jp.proceed(jp.getArgs());
             // 启动流程
-            processService.startProcess(entity, params);
+            processService.startProcess(entity, behavior.getVariables());
             // 为申请人默认创建一条备注
-            userTaskService.createComment(entity, BY_TASK_APPROVAL, I18_APPLICANT_SUBMIT);
+            if (behavior.isCommented()) {
+                userTaskService.createComment(
+                    entity,
+                    behavior.getCommentType(),
+                    behavior.getComment()
+                );
+            }
+
             // 添加附件
             List<AttachmentObject> attachments = entity.getAttachments();
             for (AttachmentObject attachment : attachments) {

@@ -226,12 +226,31 @@ public class UserTaskServiceImpl implements UserTaskService {
     @Override
     public CommentObject createComment(TaskObject task, CommentTypes type, String comment)
     throws ProcessPersistentException {
-        return _createComment(task.getTaskId(), task.getProcessObject().getProcessInstanceId(), type, comment);
+        return _createComment(
+            task.getTaskId(),
+            task.getProcessObject().getProcessInstanceId(),
+            type.name(),
+            comment
+        );
     }
 
     @Override
-    public CommentObject createComment(ProcessObject po, CommentTypes type, String comment)
-    throws ProcessPersistentException {
+    public CommentObject createComment(TaskObject task, String type, String comment) throws ProcessPersistentException {
+        return _createComment(
+            task.getTaskId(),
+            task.getProcessObject().getProcessInstanceId(),
+            type,
+            comment
+        );
+    }
+
+    @Override
+    public CommentObject createComment(ProcessObject po, CommentTypes type, String comment) throws ProcessPersistentException {
+        return _createComment(null, po.getProcessInstanceId(), type.name(), comment);
+    }
+
+    @Override
+    public CommentObject createComment(ProcessObject po, String type, String comment) throws ProcessPersistentException {
         return _createComment(null, po.getProcessInstanceId(), type, comment);
     }
 
@@ -343,19 +362,19 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 创建备注的默认方法 */
-    private CommentObject _createComment(String taskId, String processInstanceId, CommentTypes type, String comment)
+    private CommentObject _createComment(String taskId, String processInstanceId, String type, String comment)
         throws ProcessPersistentException {
         if (isNotBlank(comment)) {
-            CommentTypes thisType = type;
+            String thisType = type;
             if (thisType == null) {
-                thisType = BY_OTHERS;
+                thisType = BY_OTHERS.name();
             }
 
             try {
                 Comment c = taskService.addComment(
                     taskId,
                     processInstanceId,
-                    thisType.name(),
+                    thisType,
                     comment
                 );
 

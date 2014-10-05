@@ -57,8 +57,12 @@ public interface UserTaskService {
 
     CommentObject createComment(TaskObject task, CommentTypes type, String comment) throws ProcessPersistentException;
 
+    CommentObject createComment(TaskObject task, String type, String comment) throws ProcessPersistentException;
+
     CommentObject createComment(ProcessObject po, CommentTypes type, String comment)
     throws ProcessPersistentException;
+
+    CommentObject createComment(ProcessObject po, String type, String comment) throws ProcessPersistentException;
 
     void createExtraTask(ExtraTaskObject o) throws ProcessPersistentException;
 

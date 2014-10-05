@@ -1,7 +1,5 @@
 package com.googlecode.easyec.modules.bpmn2.domain.ctrl;
 
-import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
-
 import java.util.Date;
 
 /**
@@ -15,7 +13,7 @@ public interface CommentObjectCtrl {
 
     void setContent(String content);
 
-    void setType(CommentTypes type);
+    void setType(String type);
 
     void setCreateTime(Date createTime);
 }
