@@ -3,7 +3,6 @@ package com.googlecode.easyec.modules.bpmn2.domain.impl;
 import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
-import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessPriority;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus;
 import com.googlecode.easyec.spirit.dao.id.annotation.Identifier;
@@ -230,16 +229,18 @@ public class ProcessObjectImpl implements ProcessObject {
 
     @Override
     public List<CommentObject> getApprovedComments() {
-        return getComments(Arrays.asList(BY_TASK_APPROVAL, BY_TASK_ANNOTATED));
+        return getComments(
+            Arrays.asList(BY_TASK_APPROVAL.name(), BY_TASK_ANNOTATED.name())
+        );
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<CommentObject> getComments(List<CommentTypes> types) {
+    public List<CommentObject> getComments(List<String> types) {
         if (isEmpty(types)) return getComments();
 
         List<Predicate> predicates = new ArrayList<Predicate>();
-        for (CommentTypes type : types) {
+        for (String type : types) {
             predicates.add(
                 new BeanPropertyValueEqualsPredicate("type", type)
             );

@@ -120,12 +120,32 @@ public interface ProcessObject extends GenericPersistentDomainModel<Long>, Proce
      */
     Date getFinishTime();
 
+    /**
+     * 返回流程相关的备注信息
+     *
+     * @return 备注对象列表
+     */
     List<CommentObject> getComments();
 
+    /**
+     * 返回流程审批相关的备注信息
+     *
+     * @return 备注对象列表
+     */
     List<CommentObject> getApprovedComments();
 
-    @SuppressWarnings("unchecked")
-    List<CommentObject> getComments(List<CommentTypes> types);
+    /**
+     * 通过备注类型，返回流程相关的备注信息
+     *
+     * @param types 备注类型列表
+     * @return 备注对象列表
+     */
+    List<CommentObject> getComments(List<String> types);
 
+    /**
+     * 返回流程的附件信息列表
+     *
+     * @return 附件对象列表
+     */
     List<AttachmentObject> getAttachments();
 }
