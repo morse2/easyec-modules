@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.UserDao">
+    <cache type="com.googlecode.easyec.spirit.mybatis.cache.CacheServiceCache"/>
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.UserImpl">
+        <id column="USER_ID" property="userId" jdbcType="VARCHAR"/>
+        <result column="ENABLED" property="enable" jdbcType="SMALLINT"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        USER_ID, ENABLED
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_USER
+        where USER_ID = #{userId,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        DELETE FROM BPM_USER
+        WHERE USER_ID = #{userId,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.UserImpl">
+        INSERT INTO BPM_USER (USER_ID, ENABLED)
+        VALUES (#{userId,jdbcType=VARCHAR}, #{enable,jdbcType=SMALLINT})
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.UserImpl">
+        UPDATE BPM_USER
+        SET ENABLED = #{enable,jdbcType=SMALLINT}
+        WHERE USER_ID = #{userId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectCount" parameterType="string" resultType="int" useCache="false">
+        SELECT
+            count(distinct user_id)
+        FROM bpm_user
+        WHERE user_id = #{userId,jdbcType=VARCHAR}
+    </select>
+</mapper>

@@ -40,7 +40,7 @@
                enableUpdateByExample="false">
 
             <columnOverride column="USER_ID" property="userId" javaType="java.lang.String" jdbcType="VARCHAR"/>
-            <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
+            <columnOverride column="ENABLED" property="enable" javaType="boolean" jdbcType="SMALLINT"/>
         </table>
         <table tableName="BPM_GROUP"
                domainObjectName="Group"
@@ -50,8 +50,20 @@
                enableUpdateByExample="false">
 
             <columnOverride column="UIDPK" property="uidPk" javaType="java.lang.Long" jdbcType="NUMERIC"/>
-            <columnOverride column="GROUP_NAME" property="name" javaType="java.lang.String" jdbcType="NUMERIC"/>
+            <columnOverride column="GROUP_NAME" property="name" javaType="java.lang.String" jdbcType="VARCHAR"/>
             <columnOverride column="DEFAULT_" property="_default" javaType="boolean" jdbcType="SMALLINT"/>
+            <columnOverride column="ENABLED" property="enable" javaType="boolean" jdbcType="SMALLINT"/>
+        </table>
+        <table tableName="BPM_PROC_ROLE"
+               domainObjectName="ProcessRole"
+               enableCountByExample="false"
+               enableDeleteByExample="false"
+               enableSelectByExample="false"
+               enableUpdateByExample="false">
+
+            <columnOverride column="ROLE_CODE" property="code" javaType="java.lang.String" jdbcType="VARCHAR"/>
+            <columnOverride column="ROLE_NAME" property="name" javaType="java.lang.String" jdbcType="VARCHAR"/>
+            <columnOverride column="ROLE_TYPE" property="type" javaType="java.lang.String" jdbcType="VARCHAR"/>
             <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
         </table>
         <table tableName="BPM_PROC_GROUP_RELATION"
@@ -61,9 +73,9 @@
                enableSelectByExample="false"
                enableUpdateByExample="false">
 
-            <columnOverride column="ROLE_CODE" property="roleCode" javaType="java.lang.String" jdbcType="NUMERIC"/>
-            <columnOverride column="DEFAULT_" property="_default" javaType="boolean" jdbcType="SMALLINT"/>
-            <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
+            <columnOverride column="ROLE_CODE" property="role" javaType="ProcessRole" jdbcType="VARCHAR"/>
+            <columnOverride column="GROUP_UID" property="group" javaType="Group" jdbcType="NUMERIC"/>
+            <columnOverride column="PROC_DEF_KEY" property="processDefinitionKey" javaType="java.lang.String" jdbcType="VARCHAR"/>
         </table>
         <table tableName="BPM_GROUP_USER_RELATION"
                domainObjectName="GroupUserRelation"
@@ -72,10 +84,8 @@
                enableSelectByExample="false"
                enableUpdateByExample="false">
 
-            <columnOverride column="UIDPK" property="uidPk" javaType="java.lang.Long" jdbcType="NUMERIC"/>
-            <columnOverride column="GROUP_NAME" property="name" javaType="java.lang.String" jdbcType="NUMERIC"/>
-            <columnOverride column="DEFAULT_" property="_default" javaType="boolean" jdbcType="SMALLINT"/>
-            <columnOverride column="ENABLED" property="enabled" javaType="boolean" jdbcType="SMALLINT"/>
+            <columnOverride column="USER_ID" property="user" javaType="User" jdbcType="VARCHAR"/>
+            <columnOverride column="GROUP_UID" property="group" javaType="Group" jdbcType="NUMERIC"/>
         </table>
     </context>
 </generatorConfiguration>
