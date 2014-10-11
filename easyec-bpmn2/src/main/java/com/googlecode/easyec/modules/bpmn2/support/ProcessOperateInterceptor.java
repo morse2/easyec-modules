@@ -9,6 +9,7 @@ import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
+import com.googlecode.easyec.modules.bpmn2.support.impl.ProcessDiscardBehavior;
 import com.googlecode.easyec.modules.bpmn2.support.impl.ProcessStartBehavior;
 import com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
@@ -27,8 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
-import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_ASSIGNED;
-import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_REJECTED;
+import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.*;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
 import static com.googlecode.easyec.modules.bpmn2.support.impl.CommentBehavior.CommentBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior.TaskAuditBehaviorBuilder;
@@ -105,22 +105,31 @@ public final class ProcessOperateInterceptor implements Ordered {
     }
 
     /**
-     * 执行撤销流程实例的后置方法
+     * 执行废弃流程实例的后置方法
      *
      * @param entity 流程实体对象
      * @throws Throwable
      */
     @After(
-        value = "execution(* com.*..*.service.*Service.revoke(..)) && args(entity,reason,..)",
-        argNames = "entity,reason"
+        value = "execution(* com.*..*.service.*Service.discard(..)) && args(entity,behavior,..)",
+        argNames = "entity,behavior"
     )
-    public void afterRevoke(ProcessObject entity, String reason) throws Throwable {
+    public void afterDiscard(ProcessObject entity, ProcessDiscardBehavior behavior) throws Throwable {
         if (logger.isDebugEnabled()) {
-            logger.debug("Prepare to revoke process. Instance id: [{}].", entity.getProcessInstanceId());
+            logger.debug("Prepare to discard process. Instance id: [{}].", entity.getProcessInstanceId());
         }
 
         try {
-            processService.revokeProcess(entity, reason);
+            // 废弃当前正在运行中的流程实例
+            processService.discard(entity, behavior.getComment());
+
+            // 为用户备注消息
+            if (behavior.isCommented()) {
+                userTaskService.createComment(
+                    entity, behavior.getCommentType(),
+                    behavior.getComment()
+                );
+            }
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -396,6 +405,7 @@ public final class ProcessOperateInterceptor implements Ordered {
         if (behavior.isApproved()) _doApprove(task, behavior);
         else if (behavior.isRejected()) _doReject(task, behavior);
         else if (behavior.isPartialRejected()) _doPartialReject(task, behavior);
+        else if (behavior.isRevoked()) _doRevoke(task, behavior);
         else logger.warn("No audit logic should be executed.");
 
         // 如果任务状态不为空，则更新任务扩展表的状态
@@ -594,6 +604,41 @@ public final class ProcessOperateInterceptor implements Ordered {
             // 邮件通知申请人
             /* 此处不发送被拒绝的邮件，需要发送此类邮件，请手动调用 */
             /*sendMail(task, task, comment, FIRE_TYPE_TASK_REJECTED);*/
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
+    /* 执行撤回任务的逻辑 */
+    private void _doRevoke(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
+        try {
+            // 如果当前执行人与任务的执行不是同一人，
+            // 那么首先将任务的处理人指向给当前登录人
+            String userId = getAuthenticatedUserId();
+            if (!task.getAssignee().equals(userId)) {
+                userTaskService.setAssignee(
+                    task.getTaskId(),
+                    userId,
+                    false
+                );
+
+                task.setAssignee(userId);
+            }
+
+            // 执行拒绝操作，这样任务即撤回给申请人
+            userTaskService.rejectTask(
+                task, behavior.getComment(),
+                behavior.getVariables(),
+                behavior.isCommented()
+            );
+
+            // 执行邮件发送
+            _loopTasksForSendingMail(
+                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                FIRE_TYPE_TASK_REVOKED, task, behavior.getComment()
+            );
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 

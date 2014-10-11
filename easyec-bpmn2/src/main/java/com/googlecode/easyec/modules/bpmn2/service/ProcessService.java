@@ -18,7 +18,9 @@ public interface ProcessService {
 
     void generateBusinessKey(ProcessObject entity);
 
-    void revokeProcess(ProcessObject po, String reason) throws ProcessPersistentException;
+    void discard(ProcessObject po, String reason, String type) throws ProcessPersistentException;
+
+    void discard(ProcessObject po, String reason) throws ProcessPersistentException;
 
     void startProcess(ProcessObject entity) throws ProcessPersistentException;
 

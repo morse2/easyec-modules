@@ -18,6 +18,7 @@ public class TaskAuditBehavior {
     private boolean rejected;
     private boolean partialRejected;
     private boolean commented;
+    private boolean revoked;
 
     private String status;
 
@@ -65,6 +66,10 @@ public class TaskAuditBehavior {
         return commented;
     }
 
+    public boolean isRevoked() {
+        return revoked;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -90,6 +95,7 @@ public class TaskAuditBehavior {
             behavior.approved = true;
             behavior.rejected = false;
             behavior.partialRejected = false;
+            behavior.revoked = false;
             return this;
         }
 
@@ -97,6 +103,7 @@ public class TaskAuditBehavior {
             behavior.rejected = true;
             behavior.approved = false;
             behavior.partialRejected = false;
+            behavior.revoked = false;
             return this;
         }
 
@@ -104,6 +111,15 @@ public class TaskAuditBehavior {
             behavior.partialRejected = true;
             behavior.approved = false;
             behavior.rejected = false;
+            behavior.revoked = false;
+            return this;
+        }
+
+        public TaskAuditBehaviorBuilder revoked() {
+            behavior.revoked = true;
+            behavior.approved = false;
+            behavior.rejected = false;
+            behavior.partialRejected = false;
             return this;
         }
 
@@ -134,7 +150,7 @@ public class TaskAuditBehavior {
 
         public TaskAuditBehavior build() {
             Assert.isTrue(
-                behavior.approved || behavior.rejected || behavior.partialRejected,
+                behavior.approved || behavior.rejected || behavior.partialRejected || behavior.revoked,
                 "You didn't indicate audit result."
             );
 

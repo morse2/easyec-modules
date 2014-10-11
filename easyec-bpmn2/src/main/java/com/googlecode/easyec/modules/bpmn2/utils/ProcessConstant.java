@@ -23,16 +23,6 @@ public final class ProcessConstant {
     public static final String PROCESS_PERCENT = "processPercent";
 
     /**
-     * 流程申请人提交流程申请的备注
-     */
-    public static final String I18_APPLICANT_SUBMIT = "_I18.applicant.submit";
-
-    /**
-     * 流程申请人i18n的角色名称
-     */
-    public static final String I18_APPLICANT_ROLE = "task.role.applicant";
-
-    /**
      * 流程委托人i18n的角色名称
      */
     public static final String I18_CONSIGN_ROLE = "task.role.consign";

@@ -1,7 +1,7 @@
 package com.googlecode.easyec.modules.bpmn2.service.impl;
 
+import com.googlecode.easyec.modules.bpmn2.dao.BpmUserDao;
 import com.googlecode.easyec.modules.bpmn2.dao.GroupDao;
-import com.googlecode.easyec.modules.bpmn2.dao.UserDao;
 import com.googlecode.easyec.modules.bpmn2.domain.Group;
 import com.googlecode.easyec.modules.bpmn2.domain.User;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.GroupUserRelationPK;
@@ -30,7 +30,7 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
     private static final Logger logger = LoggerFactory.getLogger(ProcessManagementServiceImpl.class);
 
     @Resource
-    private UserDao userDao;
+    private BpmUserDao bpmUserDao;
     @Resource
     private GroupDao groupDao;
 
@@ -42,7 +42,7 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
             user.setUserId(userId);
             user.setEnable(true);
 
-            int i = userDao.insert(user);
+            int i = bpmUserDao.insert(user);
             logger.debug("Effect rows of inserting BPM_USER. [{}].", i);
 
             // 2. 将用户添加至默认的流程组
@@ -65,10 +65,10 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
 
         try {
             // 2. 更新用户状态
-            User user = userDao.selectByPrimaryKey(userId);
+            User user = bpmUserDao.selectByPrimaryKey(userId);
             user.setEnable(enable);
 
-            int i = userDao.updateByPrimaryKey(user);
+            int i = bpmUserDao.updateByPrimaryKey(user);
             logger.debug("Effect rows of updating BPM_USER. [{}].", i);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -88,7 +88,7 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
             logger.debug("Effect rows of deleting BPM_GROUP_USER_RELATION. [{}].", i);
 
             // 3. 删除用户信息
-            i = userDao.deleteByPrimaryKey(userId);
+            i = bpmUserDao.deleteByPrimaryKey(userId);
             logger.debug("Effect rows of deleting BPM_USER. [{}].", i);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -109,7 +109,7 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
             logger.debug("Effect rows of deleting BPM_GROUP_USER_RELATION. [{}].", i);
 
             // 3. 加载用户信息
-            User user = userDao.selectByPrimaryKey(userId);
+            User user = bpmUserDao.selectByPrimaryKey(userId);
 
             // 4. 将用户与给定的流程组进行绑定
             for (Group group : groups) {
@@ -126,7 +126,7 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
 
     /* 检查用户ID是否在流程系统中存在 */
     private void _checkUserExists(String userId) throws BpmUserNotFoundException {
-        if (userDao.selectCount(userId) < 1) {
+        if (bpmUserDao.selectCount(userId) < 1) {
             String err = "User id doesn't exist in flow system. [" + userId + "].";
             logger.warn(err);
 

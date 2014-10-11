@@ -66,7 +66,7 @@ public interface UserTaskService {
 
     void createExtraTask(ExtraTaskObject o) throws ProcessPersistentException;
 
-    void setAssignee(String taskId, String userId) throws ProcessPersistentException;
+    void setAssignee(String taskId, String userId, boolean notifyUser) throws ProcessPersistentException;
 
     void saveNewTask(NewTask newTask);
 

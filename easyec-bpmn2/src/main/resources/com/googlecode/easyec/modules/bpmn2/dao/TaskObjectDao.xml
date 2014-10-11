@@ -124,6 +124,9 @@
                         and HIS.END_TIME_ is not null
                     </if>
                 </when>
+                <when test="hasEndTime != null and hasEndTime">
+                    and HIS.END_TIME_ is not null
+                </when>
             </choose>
             <if test="administrator != null">
                 and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.UserDao">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.BpmUserDao">
     <cache type="com.googlecode.easyec.spirit.mybatis.cache.CacheServiceCache"/>
     <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.UserImpl">
         <id column="USER_ID" property="userId" jdbcType="VARCHAR"/>

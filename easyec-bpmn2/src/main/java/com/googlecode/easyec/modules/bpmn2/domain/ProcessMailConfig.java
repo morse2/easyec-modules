@@ -25,6 +25,11 @@ public interface ProcessMailConfig extends GenericPersistentDomainModel<Long> {
     String FIRE_TYPE_TASK_REJECTED = "task_rejected";
 
     /**
+     * 邮件触发类型：任务被撤回
+     */
+    String FIRE_TYPE_TASK_REVOKED = "task_revoked";
+
+    /**
      * 返回流程定义的KEY
      *
      * @return 流程定义KEY

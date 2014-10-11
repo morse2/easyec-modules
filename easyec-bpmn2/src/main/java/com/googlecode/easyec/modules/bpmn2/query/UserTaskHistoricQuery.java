@@ -128,6 +128,11 @@ public class UserTaskHistoricQuery extends CustomJoinQuery<UserTaskHistoricQuery
         return getSelf();
     }
 
+    public UserTaskHistoricQuery taskDefinitionKey(String taskDefinitionKey) {
+        addSearchTerm("taskDefinitionKey", taskDefinitionKey);
+        return getSelf();
+    }
+
     public UserTaskHistoricQuery orderByPriority(Sort.SortTypes direction) {
         addSort("HIS.PRIORITY_", direction);
         return getSelf();

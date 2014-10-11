@@ -1,5 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.service.impl;
 
+import com.googlecode.easyec.modules.bpmn2.command.CreateNewCommentCmd;
 import com.googlecode.easyec.modules.bpmn2.command.CreateNewTaskCmd;
 import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao;
@@ -277,17 +278,20 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
-    public void setAssignee(String taskId, String userId) throws ProcessPersistentException {
+    public void setAssignee(String taskId, String userId, boolean notifyUser) throws ProcessPersistentException {
         try {
             // 更新当前任务的处理人
             taskService.setAssignee(taskId, userId);
             // 更新当前任务扩展表中的处理人
             _updateExtraTaskAssignee(taskId, userId);
-            // 发送任务提醒邮件
-            List<TaskObject> tasks = new UserTaskQuery().taskId(taskId).list();
-            if (isNotEmpty(tasks)) {
-                TaskObject task = tasks.get(0);
-                sendMail(task, task, null, FIRE_TYPE_TASK_ASSIGNED);
+
+            if (notifyUser) {
+                // 发送任务提醒邮件
+                List<TaskObject> tasks = new UserTaskQuery().taskId(taskId).list();
+                if (isNotEmpty(tasks)) {
+                    TaskObject task = tasks.get(0);
+                    sendMail(task, task, null, FIRE_TYPE_TASK_ASSIGNED);
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -371,11 +375,8 @@ public class UserTaskServiceImpl implements UserTaskService {
             }
 
             try {
-                Comment c = taskService.addComment(
-                    taskId,
-                    processInstanceId,
-                    thisType,
-                    comment
+                Comment c = managementService.executeCommand(
+                    new CreateNewCommentCmd(taskId, processInstanceId, type, comment)
                 );
 
                 if (c != null) {

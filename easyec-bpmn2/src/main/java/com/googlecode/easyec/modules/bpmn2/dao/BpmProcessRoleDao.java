@@ -2,7 +2,7 @@ package com.googlecode.easyec.modules.bpmn2.dao;
 
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessRole;
 
-public interface ProcessRoleDao {
+public interface BpmProcessRoleDao {
 
     int deleteByPrimaryKey(String code);
 

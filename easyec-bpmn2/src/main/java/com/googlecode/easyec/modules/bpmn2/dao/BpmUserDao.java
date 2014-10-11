@@ -2,7 +2,7 @@ package com.googlecode.easyec.modules.bpmn2.dao;
 
 import com.googlecode.easyec.modules.bpmn2.domain.User;
 
-public interface UserDao {
+public interface BpmUserDao {
 
     int deleteByPrimaryKey(String userId);
 

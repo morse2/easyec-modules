@@ -136,13 +136,43 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
-    public void revokeProcess(ProcessObject po, String reason) throws ProcessPersistentException {
+    public void discard(ProcessObject po, String reason, String type) throws ProcessPersistentException {
+        discard(po, reason);
+
+        // 创建备注信息
+        userTaskService.createComment(po, type, reason);
+    }
+
+    @Override
+    public void discard(ProcessObject po, String reason) throws ProcessPersistentException {
         try {
-            // 删除流程实例
-            runtimeService.deleteProcessInstance(po.getProcessInstanceId(), reason);
+            switch (po.getProcessStatus()) {
+                case DRAFT:
+                case DISCARD:
+                    throw new WrongProcessStatusException(
+                        "Either 'IN-PROGRESS' or 'ARCHIVED' process can discard."
+                    );
+            }
+
+            /*
+             * 当前此流程还在运行中，则调用ACTIVITI框架方法，
+             * 废弃正在运行的流程实例。如果流程结束了，则手动
+             * 修改流程数据的状态
+             */
+            long i = runtimeService.createExecutionQuery()
+                .processInstanceId(po.getProcessInstanceId())
+                .count();
+            logger.debug("Is current process running? [{}].", i > 0);
+
+            if (i > 0) {
+                // 删除流程实例
+                runtimeService.deleteProcessInstance(po.getProcessInstanceId(), reason);
+            }
 
             // 设置当前流程状态
-            po.setProcessStatus(REVOKED);
+            po.setProcessStatus(DISCARD);
+            // 设置流程废弃时间
+            po.setFinishTime(new Date());
             // 更新当前流程实体对象
             processObjectDao.updateByPrimaryKey(po);
         } catch (Exception e) {
