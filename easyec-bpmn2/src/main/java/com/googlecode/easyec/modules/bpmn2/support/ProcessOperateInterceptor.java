@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_CONSIGNED;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_APPROVED;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_REJECTED;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.*;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
@@ -277,7 +279,13 @@ public final class ProcessOperateInterceptor implements Ordered {
             .approve();
 
         if (commented) {
-            builder.comment(new CommentBehaviorBuilder().type(BY_TASK_APPROVAL).comment(comment).build());
+            builder.comment(
+                new CommentBehaviorBuilder()
+                    .action(EXTRA_TASK_STATUS_APPROVED)
+                    .type(BY_TASK_APPROVAL)
+                    .comment(comment)
+                    .build()
+            );
         }
 
         _doApprove(task, builder.build());
@@ -327,7 +335,13 @@ public final class ProcessOperateInterceptor implements Ordered {
             .reject();
 
         if (commented) {
-            builder.comment(new CommentBehaviorBuilder().type(BY_TASK_APPROVAL).comment(comment).build());
+            builder.comment(
+                new CommentBehaviorBuilder()
+                    .action(EXTRA_TASK_STATUS_REJECTED)
+                    .type(BY_TASK_APPROVAL)
+                    .comment(comment)
+                    .build()
+            );
         }
 
         _doReject(task, builder.build());
@@ -378,7 +392,13 @@ public final class ProcessOperateInterceptor implements Ordered {
             .partialReject();
 
         if (commented) {
-            builder.comment(new CommentBehaviorBuilder().type(BY_TASK_APPROVAL).comment(comment).build());
+            builder.comment(
+                new CommentBehaviorBuilder()
+                    .action(EXTRA_TASK_STATUS_APPROVED)
+                    .type(BY_TASK_APPROVAL)
+                    .comment(comment)
+                    .build()
+            );
         }
 
         _doPartialReject(task, builder.build());
