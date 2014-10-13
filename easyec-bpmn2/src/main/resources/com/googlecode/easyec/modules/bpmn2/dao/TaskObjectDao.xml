@@ -109,13 +109,14 @@
             </if>
             <choose>
                 <when test="includeConsign != null and includeConsign">
+
                     and (
                     (HIS.ASSIGNEE_ = #{taskAssignee,jdbcType=VARCHAR}
                     <if test="hasEndTime != null and hasEndTime">
                         and HIS.END_TIME_ is not null
                     </if>
                     ) or (BTC.CONSIGNEE = #{taskAssignee,jdbcType=VARCHAR}
-                    and BTC.CONSIGN_STATUS = 'finished')
+                    <![CDATA[and BTC.CONSIGN_STATUS <> 'consigned')]]>
                     )
                 </when>
                 <when test="taskAssignee != null">

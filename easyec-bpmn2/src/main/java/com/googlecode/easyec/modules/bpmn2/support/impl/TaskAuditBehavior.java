@@ -1,12 +1,12 @@
 package com.googlecode.easyec.modules.bpmn2.support.impl;
 
+import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_APPROVED;
-import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_REJECTED;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.*;
 import static org.apache.commons.collections.MapUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
@@ -15,17 +15,15 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
  *
  * @author JunJie
  */
-public class TaskAuditBehavior {
+public class TaskAuditBehavior extends CommentBehaviorAdapter {
 
     private boolean approved;
     private boolean rejected;
     private boolean partialRejected;
-    private boolean commented;
     private boolean revoked;
+    private boolean selfTask;
 
     private String status;
-
-    private CommentBehavior commentBehavior;
 
     private Map<String, Object> variables = new HashMap<String, Object>();
     private Map<String, Object> localVariables = new HashMap<String, Object>();
@@ -33,24 +31,7 @@ public class TaskAuditBehavior {
     protected TaskAuditBehavior() { /* no op */ }
 
     protected TaskAuditBehavior(CommentBehavior commentBehavior) {
-        setComment(commentBehavior);
-    }
-
-    protected void setComment(CommentBehavior commentBehavior) {
-        this.commentBehavior = commentBehavior;
-        this.commented = (this.commentBehavior != null);
-    }
-
-    public String getComment() {
-        return commentBehavior != null
-            ? commentBehavior.getComment()
-            : null;
-    }
-
-    public String getCommentType() {
-        return commentBehavior != null
-            ? commentBehavior.getType()
-            : null;
+        super(commentBehavior);
     }
 
     public boolean isApproved() {
@@ -65,29 +46,21 @@ public class TaskAuditBehavior {
         return partialRejected;
     }
 
-    public boolean isCommented() {
-        return commented;
-    }
-
     public boolean isRevoked() {
         return revoked;
     }
 
     public String getStatus() {
-        return status;
-    }
-
-    public String getCustomRole() {
-        return isCommented() ? commentBehavior.getRole() : null;
-    }
-
-    public String getCustomAction() {
         if (isNotBlank(status)) return status;
+
+        CommentBehavior commentBehavior = getCommentBehavior();
         if (isCommented() && isNotBlank(commentBehavior.getAction())) {
             return commentBehavior.getAction();
         }
 
-        return rejected ? EXTRA_TASK_STATUS_REJECTED : EXTRA_TASK_STATUS_APPROVED;
+        return selfTask ? EXTRA_TASK_STATUS_RESUBMIT
+            : rejected ? EXTRA_TASK_STATUS_REJECTED
+            : EXTRA_TASK_STATUS_APPROVED;
     }
 
     public Map<String, Object> getVariables() {
@@ -103,15 +76,24 @@ public class TaskAuditBehavior {
         private TaskAuditBehavior behavior = new TaskAuditBehavior();
 
         public TaskAuditBehaviorBuilder comment(CommentBehavior commentBehavior) {
-            this.behavior.setComment(commentBehavior);
+            this.behavior.setCommentBehavior(commentBehavior);
             return this;
         }
 
         public TaskAuditBehaviorBuilder approve() {
+            return approve(null);
+        }
+
+        public TaskAuditBehaviorBuilder approve(TaskObject task) {
             behavior.approved = true;
             behavior.rejected = false;
             behavior.partialRejected = false;
             behavior.revoked = false;
+
+            if (task != null) {
+                behavior.selfTask = task.getAssignee().equals(task.getProcessObject().getCreateUser());
+            }
+
             return this;
         }
 

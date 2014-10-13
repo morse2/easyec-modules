@@ -5,40 +5,12 @@ package com.googlecode.easyec.modules.bpmn2.support.impl;
  *
  * @author JunJie
  */
-public class ProcessDiscardBehavior {
+public class ProcessDiscardBehavior extends CommentBehaviorAdapter {
 
-    private boolean commented;
-    private CommentBehavior commentBehavior;
-
-    private ProcessDiscardBehavior() { /* no op */ }
+    protected ProcessDiscardBehavior() { /* no op */ }
 
     protected ProcessDiscardBehavior(CommentBehavior commentBehavior) {
-        this.commentBehavior = commentBehavior;
-    }
-
-    protected void setComment(CommentBehavior commentBehavior) {
-        this.commentBehavior = commentBehavior;
-        this.commented = (this.commentBehavior != null);
-    }
-
-    public boolean isCommented() {
-        return commented;
-    }
-
-    public String getComment() {
-        return isCommented() ? commentBehavior.getComment() : null;
-    }
-
-    public String getCommentType() {
-        return isCommented() ? commentBehavior.getType() : null;
-    }
-
-    public String getCustomRole() {
-        return isCommented() ? commentBehavior.getRole() : null;
-    }
-
-    public String getCustomAction() {
-        return isCommented() ? commentBehavior.getAction() : null;
+        super(commentBehavior);
     }
 
     public static class ProcessDiscardBehaviorBuilder {
@@ -46,7 +18,7 @@ public class ProcessDiscardBehavior {
         private ProcessDiscardBehavior behavior = new ProcessDiscardBehavior();
 
         public ProcessDiscardBehaviorBuilder comment(CommentBehavior commentBehavior) {
-            behavior.setComment(commentBehavior);
+            behavior.setCommentBehavior(commentBehavior);
             return this;
         }
 

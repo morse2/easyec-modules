@@ -9,46 +9,21 @@ import static org.apache.commons.collections.MapUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
- * Created by JunJie on 2014/10/13.
+ * 任务解决的行为类
+ *
+ * @author JunJie
  */
-public class TaskResolveBehavior {
+public class TaskResolveBehavior extends CommentBehaviorAdapter {
 
     private boolean agree;
-    private boolean commented;
     private String status;
-    private CommentBehavior commentBehavior;
 
     private Map<String, Object> variables = new HashMap<String, Object>();
 
     protected TaskResolveBehavior() { /* no op */ }
 
     protected TaskResolveBehavior(CommentBehavior commentBehavior) {
-        this.commentBehavior = commentBehavior;
-    }
-
-    protected void setComment(CommentBehavior commentBehavior) {
-        this.commentBehavior = commentBehavior;
-        this.commented = (this.commentBehavior != null);
-    }
-
-    public String getComment() {
-        return commentBehavior != null
-            ? commentBehavior.getComment()
-            : null;
-    }
-
-    public String getCommentType() {
-        return commentBehavior != null
-            ? commentBehavior.getType()
-            : null;
-    }
-
-    public boolean isCommented() {
-        return commented;
-    }
-
-    public String getCustomRole() {
-        return isCommented() ? commentBehavior.getRole() : null;
+        super(commentBehavior);
     }
 
     public String getCustomAction() {
@@ -66,7 +41,7 @@ public class TaskResolveBehavior {
         private TaskResolveBehavior behavior = new TaskResolveBehavior();
 
         public TaskResolveBehaviorBuilder comment(CommentBehavior commentBehavior) {
-            this.behavior.setComment(commentBehavior);
+            this.behavior.setCommentBehavior(commentBehavior);
             return this;
         }
 

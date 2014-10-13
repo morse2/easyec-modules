@@ -10,47 +10,14 @@ import static org.apache.commons.collections.MapUtils.isNotEmpty;
  *
  * @author JunJie
  */
-public class ProcessStartBehavior {
-
-    private boolean commented;
-
-    private CommentBehavior commentBehavior;
+public class ProcessStartBehavior extends CommentBehaviorAdapter {
 
     private Map<String, Object> variables = new HashMap<String, Object>();
 
     protected ProcessStartBehavior() { /* no op */ }
 
     protected ProcessStartBehavior(CommentBehavior commentBehavior) {
-        setComment(commentBehavior);
-    }
-
-    protected void setComment(CommentBehavior commentBehavior) {
-        this.commentBehavior = commentBehavior;
-        this.commented = (this.commentBehavior != null);
-    }
-
-    public String getComment() {
-        return commentBehavior != null
-            ? commentBehavior.getComment()
-            : null;
-    }
-
-    public String getCommentType() {
-        return commentBehavior != null
-            ? commentBehavior.getType()
-            : null;
-    }
-
-    public String getCustomRole() {
-        return isCommented() ? commentBehavior.getRole() : null;
-    }
-
-    public String getCustomAction() {
-        return isCommented() ? commentBehavior.getAction() : null;
-    }
-
-    public boolean isCommented() {
-        return commented;
+        super(commentBehavior);
     }
 
     public Map<String, Object> getVariables() {
@@ -62,7 +29,7 @@ public class ProcessStartBehavior {
         private ProcessStartBehavior behavior = new ProcessStartBehavior();
 
         public ProcessStartBehaviorBuilder comment(CommentBehavior commentBehavior) {
-            this.behavior.setComment(commentBehavior);
+            this.behavior.setCommentBehavior(commentBehavior);
             return this;
         }
 

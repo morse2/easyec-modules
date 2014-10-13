@@ -1,6 +1,9 @@
 package com.googlecode.easyec.modules.bpmn2.support;
 
-import com.googlecode.easyec.modules.bpmn2.domain.*;
+import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
@@ -23,8 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
-import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.*;
-import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_RESUBMIT;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_CONSIGNED;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.*;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
@@ -712,21 +714,13 @@ public final class ProcessOperateInterceptor implements Ordered {
     /* 执行审批通过的逻辑 */
     private void _doApprove(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
-            // 额外判断当前任务是不是流程实例的创建人，
-            // 如果是则认为此任务是被拒绝回来后重新提交
-            boolean b = task.getAssignee().equals(task.getProcessObject().getCreateUser());
-            logger.debug("Is assignee same as process create user? [{}].", b);
-
-            String customAction = behavior.getCustomAction();
-            if (b) customAction = EXTRA_TASK_STATUS_RESUBMIT;
-
             // 如果标记创建备注，则进行创建
             if (behavior.isCommented()) {
                 userTaskService.createComment(
                     task, behavior.getCommentType(),
                     behavior.getComment(),
                     behavior.getCustomRole(),
-                    customAction
+                    behavior.getStatus()
                 );
             }
 
