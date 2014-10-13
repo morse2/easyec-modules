@@ -14,4 +14,6 @@ public interface CommentObjectDao {
     List<CommentObject> selectApprovedCommentsByTaskId(String taskId);
 
     List<CommentObject> selectAnnotatedCommentsByTaskId(String taskId);
+
+    int insertExtraInfo(CommentObject comment);
 }

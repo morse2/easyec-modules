@@ -41,6 +41,14 @@ public class ProcessStartBehavior {
             : null;
     }
 
+    public String getCustomRole() {
+        return isCommented() ? commentBehavior.getRole() : null;
+    }
+
+    public String getCustomAction() {
+        return isCommented() ? commentBehavior.getAction() : null;
+    }
+
     public boolean isCommented() {
         return commented;
     }

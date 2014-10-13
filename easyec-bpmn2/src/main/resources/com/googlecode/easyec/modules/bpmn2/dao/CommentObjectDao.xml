@@ -6,7 +6,9 @@
         <result column="USER_ID_" property="userId" jdbcType="VARCHAR"/>
         <result column="MESSAGE_" property="content" jdbcType="VARCHAR"/>
         <result column="TYPE_" property="type" jdbcType="VARCHAR"/>
-        <result column="TIME_" property="createTime" jdbcType="VARCHAR"/>
+        <result column="TIME_" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="TASK_ROLE" property="taskRole" jdbcType="VARCHAR"/>
+        <result column="TASK_ACTION" property="taskAction" jdbcType="VARCHAR"/>
 
         <association property="task" column="TASK_ID_"
                      select="com.googlecode.easyec.modules.bpmn2.dao.TaskObjectDao.selectHistoric"
@@ -22,13 +24,15 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        HIC.ID_, HIC.TASK_ID_, HIC.USER_ID_, HIC.TYPE_, HIC.TIME_, HIC.MESSAGE_, HIC.TIME_
+        HIC.ID_, HIC.TASK_ID_, HIC.USER_ID_, HIC.TYPE_, HIC.TIME_, HIC.MESSAGE_, HIC.TIME_, ECM.TASK_ROLE, ECM.TASK_ACTION
     </sql>
 
     <select id="selectAllComments" parameterType="string" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from ACT_HI_COMMENT HIC
+        left join BPM_HI_COMMENT_EXTRA ECM
+        on HIC.ID_ = ECM.COMMENT_ID
         where HIC.proc_inst_id_ = #{processInstanceId,jdbcType=VARCHAR}
         and HIC.ACTION_ = 'AddComment'
         order by HIC.TIME_ desc
@@ -38,6 +42,8 @@
         select
         <include refid="Base_Column_List"/>
         from ACT_HI_COMMENT HIC
+        left join BPM_HI_COMMENT_EXTRA ECM
+        on HIC.ID_ = ECM.COMMENT_ID
         where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
         and HIC.TYPE_ = 'BY_TASK_APPROVAL'
         order by HIC.TIME_ desc
@@ -47,8 +53,16 @@
         select
         <include refid="Base_Column_List"/>
         from ACT_HI_COMMENT HIC
+        left join BPM_HI_COMMENT_EXTRA ECM
+        on HIC.ID_ = ECM.COMMENT_ID
         where HIC.TASK_ID_ = #{taskId,jdbcType=VARCHAR}
         and HIC.TYPE_ = 'BY_TASK_ANNOTATED'
         order by HIC.TIME_ desc
     </select>
+
+    <insert id="insertExtraInfo" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.CommentObjectImpl">
+        insert into BPM_HI_COMMENT_EXTRA
+        (COMMENT_ID, TASK_ROLE, TASK_ACTION)
+        values (#{id,jdbcType=VARCHAR}, #{taskRole,jdbcType=VARCHAR}, #{taskAction,jdbcType=VARCHAR})
+    </insert>
 </mapper>

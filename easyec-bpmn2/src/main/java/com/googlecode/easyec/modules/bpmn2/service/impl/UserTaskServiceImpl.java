@@ -2,16 +2,17 @@ package com.googlecode.easyec.modules.bpmn2.service.impl;
 
 import com.googlecode.easyec.modules.bpmn2.command.CreateNewCommentCmd;
 import com.googlecode.easyec.modules.bpmn2.command.CreateNewTaskCmd;
+import com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskConsignDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ExtraTaskObjectDao;
 import com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao;
 import com.googlecode.easyec.modules.bpmn2.domain.*;
-import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.CommentObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
+import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
 import com.googlecode.easyec.modules.bpmn2.task.NewTask;
 import org.activiti.engine.HistoryService;
@@ -31,11 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.*;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.TASK_CONSIGN_CONSIGNED;
 import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.*;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_ASSIGNED;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_OTHERS;
-import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.ProcessStatus.ARCHIVED;
 import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -58,6 +58,9 @@ public class UserTaskServiceImpl implements UserTaskService {
     private ExtraTaskObjectDao extraTaskObjectDao;
 
     @Resource
+    private CommentObjectDao commentObjectDao;
+
+    @Resource
     private ProcessObjectDao processObjectDao;
 
     @Resource
@@ -71,6 +74,9 @@ public class UserTaskServiceImpl implements UserTaskService {
 
     @Resource
     private TaskService taskService;
+
+    @Resource
+    private QueryProcessService queryProcessService;
 
     @Override
     public void claimTask(String taskId, String userId) throws ProcessPersistentException {
@@ -95,72 +101,17 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
-    public void approveTask(TaskObject task, String comment) throws ProcessPersistentException {
-        approveTask(task, comment, null);
-    }
-
-    @Override
-    public void approveTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException {
-        approveTask(task, comment, null, commented);
-    }
-
-    @Override
-    public void approveTask(TaskObject task, String comment, Map<String, Object> variables)
-    throws ProcessPersistentException {
-        approveTask(task, comment, variables, true);
-    }
-
-    @Override
-    public void approveTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
-    throws ProcessPersistentException {
-        if (commented) createComment(task, BY_TASK_APPROVAL, comment);
+    public void approveTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException {
         _completeUserTask(task, false, variables);
     }
 
     @Override
-    public void rejectTask(TaskObject task, String comment) throws ProcessPersistentException {
-        rejectTask(task, comment, null);
-    }
-
-    @Override
-    public void rejectTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException {
-        rejectTask(task, comment, null, commented);
-    }
-
-    @Override
-    public void rejectTask(TaskObject task, String comment, Map<String, Object> variables)
-    throws ProcessPersistentException {
-        rejectTask(task, comment, variables, true);
-    }
-
-    @Override
-    public void rejectTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
-    throws ProcessPersistentException {
-        if (commented) createComment(task, BY_TASK_APPROVAL, comment);
+    public void rejectTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException {
         _completeUserTask(task, true, false, variables);
     }
 
     @Override
-    public void rejectTaskPartially(TaskObject task, String comment) throws ProcessPersistentException {
-        rejectTaskPartially(task, comment, null);
-    }
-
-    @Override
-    public void rejectTaskPartially(TaskObject task, String comment, boolean commented)
-    throws ProcessPersistentException {
-        rejectTaskPartially(task, comment, null, commented);
-    }
-
-    @Override
-    public void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables)
-    throws ProcessPersistentException {
-        rejectTaskPartially(task, comment, variables, true);
-    }
-
-    @Override
-    public void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
-    throws ProcessPersistentException {
-        if (commented) createComment(task, BY_TASK_APPROVAL, comment);
+    public void rejectTaskPartially(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException {
         _completeUserTask(task, false, true, variables);
     }
 
@@ -191,14 +142,9 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
-    public void resolveTask(TaskObject task, boolean agree, CommentTypes type, String comment, Map<String, Object> variables)
+    public void resolveTask(TaskObject task, String status, String commentId, Map<String, Object> variables)
     throws ProcessPersistentException {
         try {
-            // 创建批注
-            String commentId = null;
-            CommentObject co = createComment(task, type, comment);
-            if (co != null) commentId = co.getId();
-
             // 创建任务委托的历史记录
             Date currentTime = new Date();
             ExtraTaskConsign con = new ExtraTaskConsignImpl();
@@ -206,7 +152,7 @@ public class UserTaskServiceImpl implements UserTaskService {
             con.setCommentId(commentId);
             con.setTaskId(task.getTaskId());
             con.setProcessInstanceId(task.getProcessObject().getProcessInstanceId());
-            con.setStatus(agree ? TASK_CONSIGN_AGREED : TASK_CONSIGN_DISAGREED);
+            con.setStatus(status);
             con.setCreateTime(currentTime);
             con.setFinishTime(currentTime);
 
@@ -215,8 +161,6 @@ public class UserTaskServiceImpl implements UserTaskService {
 
             // 标记当前流程的任务已经解决
             taskService.resolveTask(task.getTaskId(), variables);
-        } catch (ProcessPersistentException e) {
-            throw e;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
 
@@ -225,34 +169,22 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
-    public CommentObject createComment(TaskObject task, CommentTypes type, String comment)
+    public CommentObject createComment(TaskObject task, String type, String comment, String role, String action)
     throws ProcessPersistentException {
         return _createComment(
             task.getTaskId(),
             task.getProcessObject().getProcessInstanceId(),
-            type.name(),
-            comment
-        );
-    }
-
-    @Override
-    public CommentObject createComment(TaskObject task, String type, String comment) throws ProcessPersistentException {
-        return _createComment(
-            task.getTaskId(),
-            task.getProcessObject().getProcessInstanceId(),
             type,
-            comment
+            comment,
+            role,
+            action
         );
     }
 
     @Override
-    public CommentObject createComment(ProcessObject po, CommentTypes type, String comment) throws ProcessPersistentException {
-        return _createComment(null, po.getProcessInstanceId(), type.name(), comment);
-    }
-
-    @Override
-    public CommentObject createComment(ProcessObject po, String type, String comment) throws ProcessPersistentException {
-        return _createComment(null, po.getProcessInstanceId(), type, comment);
+    public CommentObject createComment(ProcessObject po, String type, String comment, String role, String action)
+    throws ProcessPersistentException {
+        return _createComment(null, po.getProcessInstanceId(), type, comment, role, action);
     }
 
     @Override
@@ -366,7 +298,7 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 创建备注的默认方法 */
-    private CommentObject _createComment(String taskId, String processInstanceId, String type, String comment)
+    private CommentObject _createComment(String taskId, String processInstanceId, String type, String comment, String role, String action)
         throws ProcessPersistentException {
         if (isNotBlank(comment)) {
             String thisType = type;
@@ -386,6 +318,20 @@ public class UserTaskServiceImpl implements UserTaskService {
                     obj.setContent(comment);
                     obj.setType(thisType);
                     obj.setId(c.getId());
+
+                    TaskObject task = null;
+                    if (isNotBlank(taskId)) {
+                        task = queryProcessService.getTask(taskId);
+                    }
+
+                    if (isNotBlank(role)) obj.setTaskRole(role);
+                    else if (task != null) obj.setTaskRole(task.getTaskKey());
+
+                    if (isNotBlank(action)) obj.setTaskAction(action);
+                    else if (task != null) obj.setTaskAction(task.getStatus());
+
+                    int i = commentObjectDao.insertExtraInfo(obj);
+                    logger.debug("Effect rows of inserting BPM_HI_COMMENT_EXTRA. [{}].", i);
 
                     return obj;
                 }

@@ -155,9 +155,9 @@ public class Bpmn2Test extends BaseBpmn2Test {
     public void findMyTasks() throws WrongProcessValueException {
         Page page = queryProcessService.findTasks(
             new UserTaskQuery().taskAssignee("W674HKL")
-            .customJoin("IVC ivc", "ivc.uidpk")
-            .customWhere("ivc.depot = 'SHA' and ivc.region <> #{region}")
-            .customTerm("region", "SRH")
+                .customJoin("IVC ivc", "ivc.uidpk")
+                .customWhere("ivc.depot = 'SHA' and ivc.region <> #{region}")
+                .customTerm("region", "SRH")
         );
 
         Assert.assertNotNull(page);
@@ -178,9 +178,9 @@ public class Bpmn2Test extends BaseBpmn2Test {
         TaskObject task = (TaskObject) records.get(0);
 
         userTaskService.createComment(
-            task, BY_TASK_ANNOTATED,
-            "This is a task's comment."
-        );
+            task, BY_TASK_ANNOTATED.name(),
+            "This is a task's comment.",
+            null, null);
     }
 
     @Test

@@ -16,4 +16,8 @@ public interface CommentObjectCtrl {
     void setType(String type);
 
     void setCreateTime(Date createTime);
+
+    void setTaskRole(String taskRole);
+
+    void setTaskAction(String action);
 }

@@ -35,4 +35,6 @@ public interface TaskObject extends TaskDefinition, TaskObjectCtrl {
     boolean isEnd();
 
     String getDelegatedUserId();
+
+    String getStatus();
 }

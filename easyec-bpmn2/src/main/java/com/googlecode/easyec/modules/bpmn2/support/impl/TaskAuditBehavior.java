@@ -5,7 +5,10 @@ import org.springframework.util.Assert;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_APPROVED;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_REJECTED;
 import static org.apache.commons.collections.MapUtils.isNotEmpty;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
  * 任务审批行为的实现类
@@ -72,6 +75,19 @@ public class TaskAuditBehavior {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getCustomRole() {
+        return isCommented() ? commentBehavior.getRole() : null;
+    }
+
+    public String getCustomAction() {
+        if (isNotBlank(status)) return status;
+        if (isCommented() && isNotBlank(commentBehavior.getAction())) {
+            return commentBehavior.getAction();
+        }
+
+        return rejected ? EXTRA_TASK_STATUS_REJECTED : EXTRA_TASK_STATUS_APPROVED;
     }
 
     public Map<String, Object> getVariables() {

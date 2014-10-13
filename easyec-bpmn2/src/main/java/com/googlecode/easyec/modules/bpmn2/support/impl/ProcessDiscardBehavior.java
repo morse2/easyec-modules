@@ -33,6 +33,14 @@ public class ProcessDiscardBehavior {
         return isCommented() ? commentBehavior.getType() : null;
     }
 
+    public String getCustomRole() {
+        return isCommented() ? commentBehavior.getRole() : null;
+    }
+
+    public String getCustomAction() {
+        return isCommented() ? commentBehavior.getAction() : null;
+    }
+
     public static class ProcessDiscardBehaviorBuilder {
 
         private ProcessDiscardBehavior behavior = new ProcessDiscardBehavior();

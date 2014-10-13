@@ -124,6 +124,11 @@ public class TaskObjectImpl extends TaskDefinitionImpl implements TaskObject {
         return getExtraTask().getDelegatedUser();
     }
 
+    @Override
+    public String getStatus() {
+        return getExtraTask().getStatus();
+    }
+
     public ExtraTaskObject getExtraTask() {
         return extraTask;
     }

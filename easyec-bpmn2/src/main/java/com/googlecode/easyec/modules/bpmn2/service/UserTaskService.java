@@ -6,7 +6,6 @@ import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.task.NewTask;
-import org.activiti.engine.task.Task;
 
 import java.util.Map;
 
@@ -21,48 +20,21 @@ public interface UserTaskService {
 
     void unclaimTask(String taskId);
 
-    void approveTask(TaskObject task, String comment) throws ProcessPersistentException;
+    void approveTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException;
 
-    void approveTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException;
+    void rejectTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException;
 
-    void approveTask(TaskObject task, String comment, Map<String, Object> variables) throws ProcessPersistentException;
-
-    void approveTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
-    throws ProcessPersistentException;
-
-    void rejectTask(TaskObject task, String comment) throws ProcessPersistentException;
-
-    void rejectTask(TaskObject task, String comment, boolean commented) throws ProcessPersistentException;
-
-    void rejectTask(TaskObject task, String comment, Map<String, Object> variables) throws ProcessPersistentException;
-
-    void rejectTask(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
-    throws ProcessPersistentException;
-
-    void rejectTaskPartially(TaskObject task, String comment) throws ProcessPersistentException;
-
-    void rejectTaskPartially(TaskObject task, String comment, boolean commented)
-    throws ProcessPersistentException;
-
-    void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables)
-    throws ProcessPersistentException;
-
-    void rejectTaskPartially(TaskObject task, String comment, Map<String, Object> variables, boolean commented)
-    throws ProcessPersistentException;
+    void rejectTaskPartially(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException;
 
     void delegateTask(TaskObject task, String userId, String commentId) throws ProcessPersistentException;
 
-    void resolveTask(TaskObject task, boolean agree, CommentTypes type, String comment, Map<String, Object> variables)
+    void resolveTask(TaskObject task, String status, String commentId, Map<String, Object> variables) throws ProcessPersistentException;
+
+    CommentObject createComment(TaskObject task, String type, String comment, String role, String action)
     throws ProcessPersistentException;
 
-    CommentObject createComment(TaskObject task, CommentTypes type, String comment) throws ProcessPersistentException;
-
-    CommentObject createComment(TaskObject task, String type, String comment) throws ProcessPersistentException;
-
-    CommentObject createComment(ProcessObject po, CommentTypes type, String comment)
+    CommentObject createComment(ProcessObject po, String type, String comment, String role, String action)
     throws ProcessPersistentException;
-
-    CommentObject createComment(ProcessObject po, String type, String comment) throws ProcessPersistentException;
 
     void createExtraTask(ExtraTaskObject o) throws ProcessPersistentException;
 

@@ -136,14 +136,6 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     @Override
-    public void discard(ProcessObject po, String reason, String type) throws ProcessPersistentException {
-        discard(po, reason);
-
-        // 创建备注信息
-        userTaskService.createComment(po, type, reason);
-    }
-
-    @Override
     public void discard(ProcessObject po, String reason) throws ProcessPersistentException {
         try {
             switch (po.getProcessStatus()) {

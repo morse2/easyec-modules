@@ -29,5 +29,5 @@ public interface CommentObject extends DomainModel, CommentObjectCtrl {
 
     String getTaskRole();
 
-    String getStatus();
+    String getTaskAction();
 }

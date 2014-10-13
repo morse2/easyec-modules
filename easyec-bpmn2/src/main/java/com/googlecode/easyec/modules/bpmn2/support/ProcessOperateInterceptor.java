@@ -1,17 +1,12 @@
 package com.googlecode.easyec.modules.bpmn2.support;
 
-import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
-import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
-import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
-import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
+import com.googlecode.easyec.modules.bpmn2.domain.*;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
-import com.googlecode.easyec.modules.bpmn2.support.impl.ProcessDiscardBehavior;
-import com.googlecode.easyec.modules.bpmn2.support.impl.ProcessStartBehavior;
-import com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior;
+import com.googlecode.easyec.modules.bpmn2.support.impl.*;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -28,10 +23,15 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign.*;
+import static com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject.EXTRA_TASK_STATUS_RESUBMIT;
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.*;
 import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
+import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_APPROVAL;
 import static com.googlecode.easyec.modules.bpmn2.support.impl.CommentBehavior.CommentBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior.TaskAuditBehaviorBuilder;
+import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskConsignBehavior.TaskConsignBehaviorBuilder;
+import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskResolveBehavior.TaskResolveBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
 import static org.activiti.engine.impl.identity.Authentication.getAuthenticatedUserId;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -127,7 +127,9 @@ public final class ProcessOperateInterceptor implements Ordered {
             if (behavior.isCommented()) {
                 userTaskService.createComment(
                     entity, behavior.getCommentType(),
-                    behavior.getComment()
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
                 );
             }
         } catch (ProcessPersistentException e) {
@@ -194,7 +196,9 @@ public final class ProcessOperateInterceptor implements Ordered {
                 userTaskService.createComment(
                     entity,
                     behavior.getCommentType(),
-                    behavior.getComment()
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
                 );
             }
 
@@ -271,7 +275,7 @@ public final class ProcessOperateInterceptor implements Ordered {
             .approve();
 
         if (commented) {
-            builder.comment(new CommentBehaviorBuilder().comment(comment).build());
+            builder.comment(new CommentBehaviorBuilder().type(BY_TASK_APPROVAL).comment(comment).build());
         }
 
         _doApprove(task, builder.build());
@@ -321,7 +325,7 @@ public final class ProcessOperateInterceptor implements Ordered {
             .reject();
 
         if (commented) {
-            builder.comment(new CommentBehaviorBuilder().comment(comment).build());
+            builder.comment(new CommentBehaviorBuilder().type(BY_TASK_APPROVAL).comment(comment).build());
         }
 
         _doReject(task, builder.build());
@@ -372,7 +376,7 @@ public final class ProcessOperateInterceptor implements Ordered {
             .partialReject();
 
         if (commented) {
-            builder.comment(new CommentBehaviorBuilder().comment(comment).build());
+            builder.comment(new CommentBehaviorBuilder().type(BY_TASK_APPROVAL).comment(comment).build());
         }
 
         _doPartialReject(task, builder.build());
@@ -481,25 +485,29 @@ public final class ProcessOperateInterceptor implements Ordered {
     /**
      * 添加任务备注的前置方法。
      *
-     * @param task    任务实体对象
-     * @param comment 任务备注对象
+     * @param task     任务实体对象
+     * @param behavior 备注行为对象
      * @throws Throwable
      */
     @Before(
-        value = "execution(* com.*..*.service.*Service.addComment(..)) && args(task,comment,..)",
-        argNames = "task,comment"
-    )
-    public void beforeAddComment(TaskObject task, CommentObject comment) throws Throwable {
+        value = "execution(* com.*..*.service.*Service.addComment(..)) && args(task,behavior,..)",
+        argNames = "task,behavior")
+    public void beforeAddComment(TaskObject task, CommentBehavior behavior) throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug(
                 "Prepare to add a comment. Comment type: ["
-                    + comment.getType() + "], content: ["
-                    + comment.getContent() + "]."
+                    + behavior.getType() + "], content: ["
+                    + behavior.getComment() + "]."
             );
         }
 
         try {
-            userTaskService.createComment(task, comment.getType(), comment.getContent());
+            userTaskService.createComment(
+                task, behavior.getType(),
+                behavior.getComment(),
+                behavior.getRole(),
+                behavior.getAction()
+            );
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -515,27 +523,28 @@ public final class ProcessOperateInterceptor implements Ordered {
         value = "execution(* com.*..*.service.*Service.consign(..)) && args(task,userId,comment,..)",
         argNames = "task,userId,comment"
     )
+    @Deprecated
     public void afterConsignTask(TaskObject task, String userId, String comment) throws Throwable {
-        if (logger.isDebugEnabled()) {
-            logger.debug(
-                "Prepare to consign this task. Task id: ["
-                    + task.getTaskId() + "]."
-            );
-        }
+        TaskConsignBehaviorBuilder builder
+            = new TaskConsignBehaviorBuilder()
+            .comment(
+                new CommentBehaviorBuilder()
+                    .action(TASK_CONSIGN_CONSIGNED)
+                    .type(BY_TASK_ANNOTATED)
+                    .comment(comment)
+                    .build()
+            )
+            .userId(userId);
 
-        try {
-            // 为委托操作创建备注
-            String commentId = null;
-            CommentObject co = userTaskService.createComment(task, BY_TASK_ANNOTATED, comment);
-            if (co != null) commentId = co.getId();
-            // 执行委托任务的操作
-            userTaskService.delegateTask(task, userId, commentId);
-            // TODO 也许需要发送邮件提醒
-        } catch (ProcessPersistentException e) {
-            logger.error(e.getMessage(), e);
+        _doConsign(task, builder.build());
+    }
 
-            throw new DataPersistenceException(e);
-        }
+    @After(
+        value = "execution(* com.*..*.service.*Service.consign(..)) && args(task,behavior,..)",
+        argNames = "task,behavior"
+    )
+    public void afterConsignTask(TaskObject task, TaskConsignBehavior behavior) throws Throwable {
+        _doConsign(task, behavior);
     }
 
     /**
@@ -570,30 +579,50 @@ public final class ProcessOperateInterceptor implements Ordered {
         value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,agree,type,comment,variables,..)",
         argNames = "task,agree,type,comment,variables"
     )
+    @Deprecated
     public void afterResolveTask(TaskObject task, boolean agree, CommentTypes type, String comment, Map<String, Object> variables)
         throws Throwable {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Prepare to resolve this task. Task id: [" + task.getTaskId() + "].");
-        }
 
-        try {
-            userTaskService.resolveTask(task, agree, type, comment, variables);
-        } catch (ProcessPersistentException e) {
-            logger.error(e.getMessage(), e);
+        TaskResolveBehaviorBuilder builder
+            = new TaskResolveBehaviorBuilder()
+            .comment(
+                new CommentBehaviorBuilder()
+                    .type(type)
+                    .comment(comment)
+                    .build()
+            )
+            .variables(variables);
 
-            throw new DataPersistenceException(e);
-        }
+        if (agree) builder.agree();
+        else builder.disagree();
+
+        _doResolve(task, builder.build());
+    }
+
+    @After(
+        value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,behavior,..)",
+        argNames = "task,behavior"
+    )
+    public void afterResolveTask(TaskObject task, TaskResolveBehavior behavior) throws Throwable {
+        _doResolve(task, behavior);
     }
 
     // ----- private method here
     /* 执行部分拒绝任务的逻辑 */
     private void _doPartialReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
-            userTaskService.rejectTaskPartially(
-                task, behavior.getComment(),
-                behavior.getVariables(),
-                behavior.isCommented()
-            );
+            // 如果标记创建备注，则进行创建
+            if (behavior.isCommented()) {
+                userTaskService.createComment(
+                    task, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
+                );
+            }
+
+            // 审核通过并部分拒绝逻辑
+            userTaskService.rejectTaskPartially(task, behavior.getVariables());
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -627,12 +656,18 @@ public final class ProcessOperateInterceptor implements Ordered {
                 task.setAssignee(userId);
             }
 
+            // 如果标记创建备注，则进行创建
+            if (behavior.isCommented()) {
+                userTaskService.createComment(
+                    task, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
+                );
+            }
+
             // 执行拒绝操作，这样任务即撤回给申请人
-            userTaskService.rejectTask(
-                task, behavior.getComment(),
-                behavior.getVariables(),
-                behavior.isCommented()
-            );
+            userTaskService.rejectTask(task, behavior.getVariables());
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -649,11 +684,18 @@ public final class ProcessOperateInterceptor implements Ordered {
     /* 执行拒绝任务的逻辑 */
     private void _doReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
-            userTaskService.rejectTask(
-                task, behavior.getComment(),
-                behavior.getVariables(),
-                behavior.isCommented()
-            );
+            // 如果标记创建备注，则进行创建
+            if (behavior.isCommented()) {
+                userTaskService.createComment(
+                    task, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
+                );
+            }
+
+            // 审核拒绝当前任务
+            userTaskService.rejectTask(task, behavior.getVariables());
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -670,17 +712,93 @@ public final class ProcessOperateInterceptor implements Ordered {
     /* 执行审批通过的逻辑 */
     private void _doApprove(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
-            userTaskService.approveTask(
-                task, behavior.getComment(),
-                behavior.getVariables(),
-                behavior.isCommented()
-            );
+            // 额外判断当前任务是不是流程实例的创建人，
+            // 如果是则认为此任务是被拒绝回来后重新提交
+            boolean b = task.getAssignee().equals(task.getProcessObject().getCreateUser());
+            logger.debug("Is assignee same as process create user? [{}].", b);
+
+            String customAction = behavior.getCustomAction();
+            if (b) customAction = EXTRA_TASK_STATUS_RESUBMIT;
+
+            // 如果标记创建备注，则进行创建
+            if (behavior.isCommented()) {
+                userTaskService.createComment(
+                    task, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    customAction
+                );
+            }
+
+            // 审核通过当前的任务
+            userTaskService.approveTask(task, behavior.getVariables());
 
             // 执行邮件发送
             _loopTasksForSendingMail(
                 _findNextTasks(task.getProcessObject().getProcessInstanceId()),
                 FIRE_TYPE_TASK_ASSIGNED, task, behavior.getComment()
             );
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
+    /* 执行任务委托的操作 */
+    private void _doConsign(TaskObject task, TaskConsignBehavior behavior) throws DataPersistenceException {
+        if (logger.isDebugEnabled()) {
+            logger.debug(
+                "Prepare to consign this task. Task id: ["
+                    + task.getTaskId() + "]."
+            );
+        }
+
+        try {
+            // 为委托操作创建备注
+            String commentId = null;
+            if (behavior.isCommented()) {
+                CommentObject co = userTaskService.createComment(
+                    task, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
+                );
+
+                if (co != null) commentId = co.getId();
+            }
+
+            // 执行委托任务的操作
+            userTaskService.delegateTask(task, behavior.getUserId(), commentId);
+            // TODO 也许需要发送邮件提醒
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
+    /* 执行解决任务的操作 */
+    private void _doResolve(TaskObject task, TaskResolveBehavior behavior) throws DataPersistenceException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Prepare to resolve this task. Task id: [" + task.getTaskId() + "].");
+        }
+
+        try {
+            // 如果需要，则创建批注
+            String commentId = null;
+            if (behavior.isCommented()) {
+                CommentObject co = userTaskService.createComment(
+                    task, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
+                );
+
+                if (co != null) commentId = co.getId();
+            }
+
+            userTaskService.resolveTask(task, behavior.getCustomAction(), commentId, behavior.getVariables());
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
