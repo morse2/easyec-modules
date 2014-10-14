@@ -10,6 +10,7 @@
     </settings>
 
     <typeHandlers>
+        <typeHandler handler="org.apache.ibatis.type.BlobTypeHandler"/>
         <typeHandler handler="com.googlecode.easyec.spirit.mybatis.handlers.LocaleTypeHandler"/>
         <typeHandler handler="com.googlecode.easyec.spirit.mybatis.handlers.CurrencyTypeHandler"/>
         <typeHandler handler="com.googlecode.easyec.spirit.mybatis.handlers.SerializableTypeHandler"/>

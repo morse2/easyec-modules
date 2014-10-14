@@ -1,11 +1,11 @@
 package com.googlecode.easyec.modules.bpmn2.domain.impl;
 
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
-import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskConsign;
-import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
-import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 
 import java.util.Date;
+
+import static java.nio.charset.Charset.forName;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
  * 流程的注解实体类。
@@ -19,15 +19,11 @@ public class CommentObjectImpl implements CommentObject {
 
     private String id;
     private String userId;
-    private String content;
     private String type;
     private Date createTime;
     private String taskRole;
     private String taskAction;
-
-    private TaskObject task;
-    private ExtraTaskObject extraTask;
-    private ExtraTaskConsign extraTaskConsign;
+    private byte[] fullMessage;
 
     @Override
     public String getId() {
@@ -41,7 +37,7 @@ public class CommentObjectImpl implements CommentObject {
 
     @Override
     public String getContent() {
-        return content;
+        return new String(getFullMessage(), forName("utf-8"));
     }
 
     @Override
@@ -66,7 +62,9 @@ public class CommentObjectImpl implements CommentObject {
 
     @Override
     public void setContent(String content) {
-        this.content = content;
+        if (isNotBlank(content)) {
+            setFullMessage(content.getBytes(forName("utf-8")));
+        }
     }
 
     @Override
@@ -80,48 +78,13 @@ public class CommentObjectImpl implements CommentObject {
     }
 
     @Override
-    public TaskObject getTask() {
-        return task;
-    }
-
-    @Override
-    public ExtraTaskObject getExtraTask() {
-        return extraTask;
-    }
-
-    @Override
     public String getTaskRole() {
         return taskRole;
-        // 如果有EXTRA CONSIGN对象，则标记角色为委托人
-        /*ExtraTaskConsign consign = getExtraTaskConsign();
-        if (consign != null) return I18_CONSIGN_ROLE;
-
-        // 如果备注关联任务，则返回任务定义的KEY
-        TaskObject task = getTask();
-        if (task != null) return task.getTaskKey();
-
-        // 否则返回此备注的type作为任务的角色
-        return getType();*/
-    }
-
-    public ExtraTaskConsign getExtraTaskConsign() {
-        return extraTaskConsign;
     }
 
     @Override
     public String getTaskAction() {
         return taskAction;
-        // 任务审批类型的备注，则返回对应的任务的状态
-        /*if (BY_TASK_APPROVAL.name().equalsIgnoreCase(getType())) {
-            return _getExtraTaskStatus();
-        }
-        // 任务备注类型的备注，则返回委托的状态
-        if (BY_TASK_ANNOTATED.name().equalsIgnoreCase(getType())) {
-            return _getExtraTaskConsignStatus();
-        }
-
-        // 否则返回当前备注的类型作为状态
-        return getType();*/
     }
 
     @Override
@@ -134,13 +97,11 @@ public class CommentObjectImpl implements CommentObject {
         this.taskAction = taskAction;
     }
 
-    private String _getExtraTaskStatus() {
-        ExtraTaskObject task = getExtraTask();
-        return task != null ? task.getStatus() : getContent();
+    public byte[] getFullMessage() {
+        return fullMessage;
     }
 
-    private String _getExtraTaskConsignStatus() {
-        ExtraTaskConsign consign = getExtraTaskConsign();
-        return consign != null ? consign.getStatus() : getContent();
+    public void setFullMessage(byte[] fullMessage) {
+        this.fullMessage = fullMessage;
     }
 }

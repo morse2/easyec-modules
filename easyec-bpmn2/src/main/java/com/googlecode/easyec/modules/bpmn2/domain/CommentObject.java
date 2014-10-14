@@ -1,7 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.domain;
 
 import com.googlecode.easyec.modules.bpmn2.domain.ctrl.CommentObjectCtrl;
-import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.spirit.domain.DomainModel;
 
 import java.util.Date;
@@ -22,10 +21,6 @@ public interface CommentObject extends DomainModel, CommentObjectCtrl {
     String getType();
 
     Date getCreateTime();
-
-    TaskObject getTask();
-
-    ExtraTaskObject getExtraTask();
 
     String getTaskRole();
 
