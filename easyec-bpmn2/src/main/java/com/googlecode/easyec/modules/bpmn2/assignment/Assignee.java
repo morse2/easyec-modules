@@ -19,7 +19,6 @@ public class Assignee implements Serializable {
     }
 
     public Assignee(String userId) {
-
         this.userId = userId;
     }
 
