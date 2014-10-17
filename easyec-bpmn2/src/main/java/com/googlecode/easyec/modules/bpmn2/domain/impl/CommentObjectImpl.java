@@ -2,6 +2,7 @@ package com.googlecode.easyec.modules.bpmn2.domain.impl;
 
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 
+import java.nio.charset.Charset;
 import java.util.Date;
 
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -36,7 +37,12 @@ public class CommentObjectImpl implements CommentObject {
 
     @Override
     public String getContent() {
-        return new String(getFullMessage());
+        return new String(fullMessage);
+    }
+
+    @Override
+    public String getContent(Charset charset) {
+        return new String(getFullMessage(), charset);
     }
 
     @Override

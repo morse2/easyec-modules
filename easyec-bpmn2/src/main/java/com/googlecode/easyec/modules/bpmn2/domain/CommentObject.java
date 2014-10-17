@@ -3,6 +3,7 @@ package com.googlecode.easyec.modules.bpmn2.domain;
 import com.googlecode.easyec.modules.bpmn2.domain.ctrl.CommentObjectCtrl;
 import com.googlecode.easyec.spirit.domain.DomainModel;
 
+import java.nio.charset.Charset;
 import java.util.Date;
 
 /**
@@ -17,6 +18,8 @@ public interface CommentObject extends DomainModel, CommentObjectCtrl {
     String getUserId();
 
     String getContent();
+
+    String getContent(Charset charset);
 
     String getType();
 
