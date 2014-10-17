@@ -1,10 +1,8 @@
 package com.googlecode.easyec.bpmn2.test.service;
 
 import com.googlecode.easyec.bpmn2.test.BaseBpmn2Test;
-import com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig;
-import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
-import com.googlecode.easyec.modules.bpmn2.domain.TaskDefinition;
-import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
+import com.googlecode.easyec.modules.bpmn2.domain.*;
+import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.AttachmentObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.query.ProcessMailConfigQuery;
@@ -29,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_ASSIGNED;
-import static com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes.BY_TASK_ANNOTATED;
 import static com.googlecode.easyec.spirit.web.controller.sorts.Sort.SortTypes.ASC;
 import static com.googlecode.easyec.spirit.web.controller.sorts.Sort.SortTypes.DESC;
 
@@ -126,12 +123,12 @@ public class Bpmn2Test extends BaseBpmn2Test {
         List<ProcessObject> list
             = new ProcessQuery()
             .applicantId("D671CBC")
-            .customJoin("IVC ivc", "ivc.uidpk")
-            .customWhere("ivc.depot = 'SHA' and ivc.region <> #{region}")
-            .customTerm("region", "SRH")
+            .businessKeyLike("892")
             .list();
 
-        System.out.println(list);
+        ProcessObject process = list.get(0);
+        CommentObject comment = process.getComments().get(0);
+        System.out.println(comment);
     }
 
     @Test
@@ -166,21 +163,17 @@ public class Bpmn2Test extends BaseBpmn2Test {
     @Test
     @Rollback(false)
     public void addComment() throws WrongProcessValueException, ProcessPersistentException {
-        Page page = queryProcessService.findTasks(
-            new UserTaskQuery()
-                .taskAssignee("kermit")
-                .orderByPriority(ASC)
-        );
+        Authentication.setAuthenticatedUserId("D671CBC");
 
-        List<?> records = page.getRecords();
-        Assert.assertTrue(!records.isEmpty());
-
-        TaskObject task = (TaskObject) records.get(0);
+        List<ProcessObject> list = new ProcessQuery()
+            .applicantId("D671CBC")
+            .businessKeyLike("892")
+            .list();
 
         userTaskService.createComment(
-            task, BY_TASK_ANNOTATED.name(),
-            "This is a task's comment.",
-            null, null);
+            list.get(0), CommentTypes.BY_TASK_APPROVAL.name(),
+            "测试备注", null, null
+        );
     }
 
     @Test

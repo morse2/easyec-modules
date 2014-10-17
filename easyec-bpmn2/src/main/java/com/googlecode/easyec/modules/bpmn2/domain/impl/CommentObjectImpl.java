@@ -4,7 +4,6 @@ import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 
 import java.util.Date;
 
-import static java.nio.charset.Charset.forName;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
@@ -37,7 +36,7 @@ public class CommentObjectImpl implements CommentObject {
 
     @Override
     public String getContent() {
-        return new String(getFullMessage(), forName("utf-8"));
+        return new String(getFullMessage());
     }
 
     @Override
@@ -63,7 +62,7 @@ public class CommentObjectImpl implements CommentObject {
     @Override
     public void setContent(String content) {
         if (isNotBlank(content)) {
-            setFullMessage(content.getBytes(forName("utf-8")));
+            setFullMessage(content.getBytes());
         }
     }
 
