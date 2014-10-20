@@ -633,6 +633,9 @@ public final class ProcessOperateInterceptor implements Ordered {
     /* 执行部分拒绝任务的逻辑 */
     private void _doPartialReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
+            // 审核通过并部分拒绝逻辑
+            userTaskService.rejectTaskPartially(task, behavior.getVariables());
+
             // 如果标记创建备注，则进行创建
             if (behavior.isCommented()) {
                 userTaskService.createComment(
@@ -642,9 +645,6 @@ public final class ProcessOperateInterceptor implements Ordered {
                     behavior.getCustomAction()
                 );
             }
-
-            // 审核通过并部分拒绝逻辑
-            userTaskService.rejectTaskPartially(task, behavior.getVariables());
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -706,6 +706,9 @@ public final class ProcessOperateInterceptor implements Ordered {
     /* 执行拒绝任务的逻辑 */
     private void _doReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
+            // 审核拒绝当前任务
+            userTaskService.rejectTask(task, behavior.getVariables());
+
             // 如果标记创建备注，则进行创建
             if (behavior.isCommented()) {
                 userTaskService.createComment(
@@ -715,9 +718,6 @@ public final class ProcessOperateInterceptor implements Ordered {
                     behavior.getCustomAction()
                 );
             }
-
-            // 审核拒绝当前任务
-            userTaskService.rejectTask(task, behavior.getVariables());
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -734,6 +734,9 @@ public final class ProcessOperateInterceptor implements Ordered {
     /* 执行审批通过的逻辑 */
     private void _doApprove(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
+            // 审核通过当前的任务
+            userTaskService.approveTask(task, behavior.getVariables());
+
             // 如果标记创建备注，则进行创建
             if (behavior.isCommented()) {
                 userTaskService.createComment(
@@ -743,9 +746,6 @@ public final class ProcessOperateInterceptor implements Ordered {
                     behavior.getStatus()
                 );
             }
-
-            // 审核通过当前的任务
-            userTaskService.approveTask(task, behavior.getVariables());
 
             // 执行邮件发送
             _loopTasksForSendingMail(
