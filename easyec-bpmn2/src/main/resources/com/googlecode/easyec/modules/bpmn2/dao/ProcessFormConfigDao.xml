@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.ProcessFormConfigDao">
+    <cache type="com.googlecode.easyec.spirit.mybatis.cache.CacheServiceCache"/>
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessFormConfigImpl">
+        <id column="UIDPK" property="uidPk" jdbcType="NUMERIC"/>
+        <result column="PROC_DEF_KEY" property="definitionKey" jdbcType="VARCHAR"/>
+        <result column="PROC_FORM_TYPE" property="formType" jdbcType="VARCHAR"/>
+        <result column="PROC_FORM_KEY" property="formKey" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        UIDPK, PROC_DEF_KEY, PROC_FORM_TYPE, PROC_FORM_KEY
+    </sql>
+    <sql id="Search_Conditions">
+        <where>
+            <if test="definitionKey != null">
+                and PROC_DEF_KEY = #{definitionKey,jdbcType=VARCHAR}
+            </if>
+            <if test="formType != null">
+                and PROC_FORM_TYPE = #{formType,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_PROC_FORM_CONF
+        where UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        DELETE FROM BPM_PROC_FORM_CONF
+        WHERE UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </delete>
+    <insert id="insert" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessFormConfigImpl">
+        INSERT INTO BPM_PROC_FORM_CONF (UIDPK, PROC_DEF_KEY, PROC_FORM_TYPE,
+                                        PROC_FORM_KEY)
+        VALUES (#{uidPk,jdbcType=NUMERIC}, #{definitionKey,jdbcType=VARCHAR}, #{formType,jdbcType=VARCHAR},
+                #{formKey,jdbcType=VARCHAR})
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessFormConfigImpl">
+        UPDATE BPM_PROC_FORM_CONF
+        SET PROC_DEF_KEY   = #{definitionKey,jdbcType=VARCHAR},
+            PROC_FORM_TYPE = #{formType,jdbcType=VARCHAR},
+            PROC_FORM_KEY  = #{formKey,jdbcType=VARCHAR}
+        WHERE UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </update>
+
+    <select id="find" parameterType="hashmap" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_PROC_FORM_CONF
+        <include refid="Search_Conditions"/>
+    </select>
+</mapper>
