@@ -47,7 +47,7 @@ public abstract class TaskAssignmentListener implements TaskListener {
         obj.setTaskId(delegateTask.getId());
 
         // 获取当前任务的处理人
-        Assignee assignee = getAssignee(process);
+        Assignee assignee = getAssignee(delegateTask, process);
         if (assignee != null) {
             obj.setAssignee(assignee.getUserId());
             obj.setDelegatedUser(assignee.getDelegatedUserId());
@@ -67,8 +67,9 @@ public abstract class TaskAssignmentListener implements TaskListener {
      * 通过给定的流程实体对象，
      * 查找当前任务节点的处理人。
      *
+     * @param task    委托任务对象
      * @param process 流程实体对象
      * @return 任务负责人对象
      */
-    abstract protected Assignee getAssignee(ProcessObject process);
+    abstract protected Assignee getAssignee(DelegateTask task, ProcessObject process);
 }
