@@ -59,11 +59,12 @@
         SELECT
             count(DISTINCT task_id)
         FROM BPM_HI_TASK_EXTRA
-        WHERE task_id > (
+        WHERE create_time > (
             SELECT
-                max(task_id)
+                max(create_time)
             FROM BPM_HI_TASK_EXTRA
             WHERE TASK_STATUS = 'rejected'
+                  AND PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
         ) AND PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
               AND TASK_ASSIGNEE = #{assignee,jdbcType=VARCHAR}
               AND TASK_STATUS <> 'pending'
