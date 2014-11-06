@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.PROCESS_ENTITY_ID;
 import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.getBean;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
  * 任务分配的监听类
@@ -23,7 +24,7 @@ import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.getBean;
  */
 public abstract class TaskAssignmentListener implements TaskListener {
 
-    private static final long serialVersionUID = -867856736197466481L;
+    private static final long serialVersionUID = 6986390784087974029L;
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
@@ -40,14 +41,21 @@ public abstract class TaskAssignmentListener implements TaskListener {
 
         logger.debug("ProcessObject uid: [{}].", process.getUidPk());
 
+        if (isBlank(process.getProcessInstanceId())) {
+            logger.debug("Current Process object hasn't instance id. So it should copy from current task.");
+
+            process.setProcessInstanceId(delegateTask.getProcessInstanceId());
+        }
+
+        // 获取当前任务的处理人
+        Assignee assignee = getAssignee(delegateTask, process);
+
         // 创建任务的扩展信息
         ExtraTaskObject obj = new ExtraTaskObjectImpl();
         obj.setProcessInstanceId(delegateTask.getProcessInstanceId());
         obj.setCreateTime(delegateTask.getCreateTime());
         obj.setTaskId(delegateTask.getId());
 
-        // 获取当前任务的处理人
-        Assignee assignee = getAssignee(delegateTask, process);
         if (assignee != null) {
             obj.setAssignee(assignee.getUserId());
             obj.setDelegatedUser(assignee.getDelegatedUserId());
