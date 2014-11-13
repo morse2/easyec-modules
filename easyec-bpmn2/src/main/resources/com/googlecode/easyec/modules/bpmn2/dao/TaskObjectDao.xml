@@ -56,9 +56,10 @@
             join ACT_HI_PROCINST HIP on HIS.PROC_INST_ID_ = HIP.PROC_INST_ID_
         </if>
         <if test="administrator != null">
-            join BPM_USER_PROC_RELATION BUPR on BUPR.PROC_KEY = ENT.PROC_DEF_KEY
-            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BUPR.ROLE_CODE
-            and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
+            join BPM_PROC_ROLE_RELATION BPRR on BPRR.PROC_DEF_KEY = ENT.PROC_DEF_KEY
+            join ACT_ID_MEMBERSHIP AIM on AIM.GROUP_ID_ = BPRR.GROUP_ID
+            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BPRR.PROC_ROLE_CODE
+            and BPR.ROLE_TYPE = 'admin' and BPR.ENABLED = 1
         </if>
     </sql>
 
@@ -73,9 +74,10 @@
             join ACT_HI_PROCINST HIP on HIS.PROC_INST_ID_ = HIP.PROC_INST_ID_
         </if>
         <if test="administrator != null">
-            join BPM_USER_PROC_RELATION BUPR on BUPR.PROC_KEY = ENT.PROC_DEF_KEY
-            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BUPR.ROLE_CODE
-            and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
+            join BPM_PROC_ROLE_RELATION BPRR on BPRR.PROC_DEF_KEY = ENT.PROC_DEF_KEY
+            join ACT_ID_MEMBERSHIP AIM on AIM.GROUP_ID_ = BPRR.GROUP_ID
+            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BPRR.PROC_ROLE_CODE
+            and BPR.ROLE_TYPE = 'admin' and BPR.ENABLED = 1
         </if>
         <if test="includeConsign != null and includeConsign">
             left join BPM_HI_TASK_CONSIGN BTC on HIS.ID_ = BTC.TASK_ID
@@ -130,7 +132,7 @@
                 </when>
             </choose>
             <if test="administrator != null">
-                and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
+                and AIM.USER_ID_ = #{administrator,jdbcType=VARCHAR}
             </if>
             <if test="noAssignee != null and noAssignee">
                 and HIS.ASSIGNEE_ is null and not exists(

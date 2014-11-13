@@ -36,9 +36,10 @@
     </sql>
     <sql id="Join_Admin_SQL">
         <if test="administrator != null">
-            join BPM_USER_PROC_RELATION BUPR on BUPR.PROC_KEY = BPE.PROC_DEF_KEY
-            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BUPR.ROLE_CODE
-            and BPR.ROLE_TYPE = 'flow_admin' and BPR.ENABLED = 1
+            join BPM_PROC_ROLE_RELATION BPRR on BPRR.PROC_DEF_KEY = BPE.PROC_DEF_KEY
+            join ACT_ID_MEMBERSHIP AIM on AIM.GROUP_ID_ = BPRR.GROUP_ID
+            join BPM_PROC_ROLE BPR on BPR.ROLE_CODE = BPRR.PROC_ROLE_CODE
+            and BPR.ROLE_TYPE = 'admin' and BPR.ENABLED = 1
         </if>
     </sql>
 
@@ -89,7 +90,7 @@
                 and BPE.CREATE_USER = #{applicantId,jdbcType=VARCHAR}
             </if>
             <if test="administrator != null">
-                and BUPR.USER_ID = #{administrator,jdbcType=VARCHAR}
+                and AIM.USER_ID_ = #{administrator,jdbcType=VARCHAR}
             </if>
             <if test="rejected != null">
                 <choose>

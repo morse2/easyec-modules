@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.BpmRoleDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.BpmRoleImpl">
+        <id column="ROLE_CODE" property="roleCode" jdbcType="VARCHAR"/>
+        <result column="ROLE_SCOPE" property="roleScope" jdbcType="VARCHAR"/>
+        <result column="ROLE_TYPE" property="roleType" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT
+            ur.user_role_code AS role_code,
+            ur.role_type      AS role_type,
+            'ForFunction'     AS role_scope
+        FROM bpm_user_role ur
+            JOIN bpm_user_role_relation urr ON ur.user_role_code = urr.user_role_code
+            JOIN act_id_membership m ON urr.group_id = m.group_id_
+        WHERE m.user_id_ = #{userId,jdbcType=VARCHAR}
+        UNION
+        SELECT
+            pr.role_code AS role_code,
+            pr.role_type AS role_type,
+            'ForProcess' AS role_scope
+        FROM bpm_proc_role pr
+            JOIN bpm_proc_role_relation prr ON pr.role_code = prr.proc_role_code
+            JOIN act_id_membership m ON prr.group_id = m.group_id_
+        WHERE m.user_id_ = #{userId,jdbcType=VARCHAR}
+    </select>
+</mapper>

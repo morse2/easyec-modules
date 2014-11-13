@@ -26,4 +26,17 @@ public final class ProcessConstant {
      * 流程委托人i18n的角色名称
      */
     public static final String I18_CONSIGN_ROLE = "task.role.consign";
+
+    /**
+     * 流程角色为系统管理员
+     */
+    public static final String ROLE_TYPE_SYS_ADMIN = "sys_admin";
+    /**
+     * 流程角色为流程管理员
+     */
+    public static final String ROLE_TYPE_FLOW_ADMIN = "admin";
+    /**
+     * 流程角色为申请人
+     */
+    public static final String ROLE_TYPE_APPLICANT = "applicant";
 }

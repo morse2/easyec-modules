@@ -93,4 +93,8 @@
     <bean id="processDelegateService"
           class="com.googlecode.easyec.bpmn2.test.service.impl.MyProcessDelegateServiceImpl"
             />
+
+    <bean id="processManagementService"
+          class="com.googlecode.easyec.modules.bpmn2.service.impl.ProcessManagementServiceImpl"
+            />
 </beans>

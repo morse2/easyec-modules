@@ -78,7 +78,7 @@ public class Bpmn2Test extends BaseBpmn2Test {
     @Test
     @Rollback(false)
     public void deleteProcessDefinition() {
-        repositoryService.deleteDeployment("901");
+        repositoryService.deleteDeployment("201");
     }
 
     @Test
