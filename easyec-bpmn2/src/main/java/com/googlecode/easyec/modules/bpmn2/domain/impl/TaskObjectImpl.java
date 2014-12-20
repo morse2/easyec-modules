@@ -34,6 +34,10 @@ public class TaskObjectImpl extends TaskDefinitionImpl implements TaskObject {
     /* 任务批注类型的备注列表 */
     private List<CommentObject> annotatedComments = new ArrayList<CommentObject>();
 
+    // ----- Candidates list
+    private List<String> runtimeCandidates = new ArrayList<String>();
+    private List<String> historyCandidates = new ArrayList<String>();
+
     @Override
     public String getTaskId() {
         return taskId;
@@ -127,6 +131,19 @@ public class TaskObjectImpl extends TaskDefinitionImpl implements TaskObject {
     @Override
     public String getStatus() {
         return getExtraTask().getStatus();
+    }
+
+    @Override
+    public List<String> getCandidates() {
+        return isEnd() ? getHistoryCandidates() : getRuntimeCandidates();
+    }
+
+    public List<String> getRuntimeCandidates() {
+        return runtimeCandidates;
+    }
+
+    public List<String> getHistoryCandidates() {
+        return historyCandidates;
     }
 
     public ExtraTaskObject getExtraTask() {

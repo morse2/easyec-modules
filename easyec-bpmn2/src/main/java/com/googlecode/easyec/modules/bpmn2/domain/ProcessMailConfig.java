@@ -30,6 +30,11 @@ public interface ProcessMailConfig extends GenericPersistentDomainModel<Long> {
     String FIRE_TYPE_TASK_REVOKED = "task_revoked";
 
     /**
+     * 邮件触发类型：任务被委托
+     */
+    String FIRE_TYPE_TASK_CONSIGNED = "task_consigned";
+
+    /**
      * 返回流程定义的KEY
      *
      * @return 流程定义KEY

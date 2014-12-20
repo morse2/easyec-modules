@@ -7,6 +7,7 @@
     <version>1.0.8-SNAPSHOT</version>
     <modules>
         <module>easyec-bpmn2</module>
+        <module>easyec-cas-restlet-support</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -69,18 +70,6 @@
             <artifactId>spring-test</artifactId>
             <version>3.2.8.RELEASE</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.jolbox</groupId>
-            <artifactId>bonecp</artifactId>
-            <version>0.7.1.RELEASE</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.googlecode.easyec</groupId>
-            <artifactId>spirit-mybatis</artifactId>
-            <version>0.5.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>

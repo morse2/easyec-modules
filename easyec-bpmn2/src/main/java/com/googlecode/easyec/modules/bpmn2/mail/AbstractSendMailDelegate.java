@@ -7,9 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.autowireBeanProperties;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
  * 发送邮件的抽象委托类
@@ -40,15 +42,31 @@ public abstract class AbstractSendMailDelegate implements SendMailDelegate {
             return;
         }
 
-        // 查询用户邮件地址
-        String mail = getUserMail(newTask.getAssignee());
-        if (isBlank(mail)) {
-            logger.warn("User hasn't set mail, assignee: [{}].", newTask.getAssignee());
+        List<String> recipients = new ArrayList<String>();
+        // 获取处理人的邮件地址
+        String assignee = newTask.getAssignee();
+        if (isNotBlank(assignee)) {
+            String mail = getUserMail(assignee);
+            if (isNotBlank(mail)) recipients.add(mail);
+        }
+        // 获取候选人的邮件地址
+        else {
+            List<String> candidates = newTask.getCandidates();
+            for (String candidate : candidates) {
+                String userMail = getUserMail(candidate);
+                if (isNotBlank(userMail)) recipients.add(userMail);
+            }
+        }
+
+        if (recipients.isEmpty()) {
+            logger.warn("There has no any assignee or candidates to deal with task, task id: [{}].", newTask.getTaskId());
 
             return;
         }
 
-        mo.addRecipient(mail);
+        for (String recipient : recipients) {
+            mo.addRecipient(recipient);
+        }
 
         // 将邮件对象推送到邮件队列中
         sendMailExecutor.prepare(mo);

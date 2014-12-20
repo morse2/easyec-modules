@@ -27,6 +27,14 @@
         <collection property="annotatedComments" column="ID_"
                     select="com.googlecode.easyec.modules.bpmn2.dao.CommentObjectDao.selectAnnotatedCommentsByTaskId"
                 />
+
+        <collection property="runtimeCandidates" column="ID_"
+                    select="selectRuntimeCandidates"
+                />
+
+        <collection property="historyCandidates" column="ID_"
+                    select="selectHistoryCandidates"
+                />
     </resultMap>
 
     <resultMap id="TaskDefinitionResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.TaskDefinitionImpl">
@@ -262,5 +270,12 @@
         <include refid="Historic_Column_List"/>
         from ACT_HI_TASKINST HIS
         where HIS.ID_ = #{taskId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectRuntimeCandidates" parameterType="long" resultType="string" useCache="false">
+        select user_id_ from ACT_RU_IDENTITYLINK where task_id_ = #{taskId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectHistoryCandidates" parameterType="long" resultType="string" useCache="false">
+        select user_id_ from ACT_HI_IDENTITYLINK where task_id_ = #{taskId,jdbcType=VARCHAR}
     </select>
 </mapper>

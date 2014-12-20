@@ -38,7 +38,6 @@ import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskConsignBehavi
 import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskResolveBehavior.TaskResolveBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
 import static org.activiti.engine.impl.identity.Authentication.getAuthenticatedUserId;
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
@@ -784,7 +783,11 @@ public final class ProcessOperateInterceptor implements Ordered {
 
             // 执行委托任务的操作
             userTaskService.delegateTask(task, behavior.getUserId(), commentId);
-            // TODO 也许需要发送邮件提醒
+            // 执行邮件发送
+            _loopTasksForSendingMail(
+                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                FIRE_TYPE_TASK_CONSIGNED, task, behavior.getComment()
+            );
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -832,8 +835,8 @@ public final class ProcessOperateInterceptor implements Ordered {
         // 循环任务列表
         for (TaskObject newTask : newTasks) {
             // 判断任务处理人是否为空
-            if (isBlank(newTask.getAssignee())) {
-                logger.warn("Task has no assignee, so ignore sending mail. task id: [{}].", newTask.getTaskId());
+            if (!userTaskService.hasApprovalPeople(newTask.getTaskId())) {
+                logger.warn("There has no any assignee or candidates to deal with the task. Task id: [{}].", newTask.getTaskId());
 
                 continue;
             }

@@ -37,4 +37,6 @@ public interface TaskObject extends TaskDefinition, TaskObjectCtrl {
     String getDelegatedUserId();
 
     String getStatus();
+
+    List<String> getCandidates();
 }

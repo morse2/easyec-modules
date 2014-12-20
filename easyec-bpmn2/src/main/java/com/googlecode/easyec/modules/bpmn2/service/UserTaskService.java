@@ -45,4 +45,6 @@ public interface UserTaskService {
     void setDelegatedUser(String taskId, String delegatedUser) throws ProcessPersistentException;
 
     void setExtraTaskStatus(String taskId, String status) throws ProcessPersistentException;
+
+    boolean hasApprovalPeople(String taskId);
 }

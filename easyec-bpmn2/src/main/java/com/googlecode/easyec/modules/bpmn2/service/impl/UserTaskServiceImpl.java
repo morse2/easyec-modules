@@ -297,6 +297,16 @@ public class UserTaskServiceImpl implements UserTaskService {
         }
     }
 
+    @Override
+    public boolean hasApprovalPeople(String taskId) {
+        return taskService.createNativeTaskQuery()
+        .sql(
+            "select count(distinct t.id_) from ACT_RU_TASK t left join ACT_RU_IDENTITYLINK i on t.id_ = i.task_id_" +
+                " where t.id_ = #{taskId} and (t.assignee_ is not null or (i.type_ = 'candidate' and i.id_ is not null))"
+        ).parameter(taskId, taskId)
+        .count() > 0;
+    }
+
     /* 创建备注的默认方法 */
     private CommentObject _createComment(String taskId, String processInstanceId, String type, String comment, String role, String action)
         throws ProcessPersistentException {
