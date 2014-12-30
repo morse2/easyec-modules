@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="
+          http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>distribution</id>
+    <formats>
+        <format>jar</format>
+    </formats>
+
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <!--<files>
+        <file>
+            <outputDirectory>META-INF</outputDirectory>
+            <source>src/assemble/META-INF/spring.handlers</source>
+            <destName>spring.handlers</destName>
+        </file>
+        <file>
+            <outputDirectory>META-INF</outputDirectory>
+            <source>src/assemble/META-INF/spring.schemas</source>
+            <destName>spring.schemas</destName>
+        </file>
+    </files>-->
+
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/</outputDirectory>
+            <unpack>true</unpack>
+            <useStrictFiltering>true</useStrictFiltering>
+            <excludes>
+                <exclude>commons-logging:commons-logging</exclude>
+                <exclude>com.fasterxml.uuid:java-uuid-generator</exclude>
+                <exclude>log4j:log4j</exclude>
+                <exclude>org.apache.commons:commons-jexl</exclude>
+                <exclude>eu.medsea.mimeutil:mime-util</exclude>
+                <exclude>javax.mail:mail</exclude>
+                <exclude>javax.activation:activation</exclude>
+                <exclude>ch.qos.logback:logback-classic</exclude>
+                <exclude>ch.qos.logback:logback-core</exclude>
+            </excludes>
+
+            <unpackOptions>
+                <includes>
+                    <include>**/*.class</include>
+                    <include>**/*.xsd</include>
+                    <include>**/*.properties</include>
+                    <include>logback.xml</include>
+                    <include>spring/*.xml</include>
+                    <include>com/tnt/**/*.txt</include>
+                    <include>com/tnt/**/*.png</include>
+                    <include>com/tnt/**/*.wav</include>
+                </includes>
+            </unpackOptions>
+        </dependencySet>
+    </dependencySets>
+</assembly>

@@ -302,8 +302,8 @@ public class UserTaskServiceImpl implements UserTaskService {
         return taskService.createNativeTaskQuery()
         .sql(
             "select count(distinct t.id_) from ACT_RU_TASK t left join ACT_RU_IDENTITYLINK i on t.id_ = i.task_id_" +
-                " where t.id_ = #{taskId} and (t.assignee_ is not null or (i.type_ = 'candidate' and i.id_ is not null))"
-        ).parameter(taskId, taskId)
+                " where t.id_ = #{taskId,jdbcType=VARCHAR} and (t.assignee_ is not null or (i.type_ = 'candidate' and i.id_ is not null))"
+        ).parameter("taskId", taskId)
         .count() > 0;
     }
 
