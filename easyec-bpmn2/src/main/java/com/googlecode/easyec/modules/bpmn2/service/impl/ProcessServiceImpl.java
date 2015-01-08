@@ -191,6 +191,8 @@ public class ProcessServiceImpl implements ProcessService {
 
         // 设置业务流程的KEY
         po.setBusinessKey(entity.getBusinessKey());
+        // 设置业务流程的优先级
+        po.setPriority(entity.getPriority());
 
         // 检查流程实体的状态是否已启动
         if (!DRAFT.equals(po.getProcessStatus()) || isNotBlank(po.getProcessInstanceId())) {
