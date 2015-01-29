@@ -47,6 +47,9 @@ public abstract class TaskAssignmentListener implements TaskListener {
             process.setProcessInstanceId(delegateTask.getProcessInstanceId());
         }
 
+        // 同步当前任务的实例ID给流程对象
+        process.setProcessDefinitionId(delegateTask.getProcessDefinitionId());
+
         // 获取当前任务的处理人
         Assignee assignee = getAssignee(delegateTask, process);
 

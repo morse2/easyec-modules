@@ -7,6 +7,7 @@ import com.googlecode.easyec.modules.bpmn2.domain.impl.AttachmentObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.query.ProcessMailConfigQuery;
 import com.googlecode.easyec.modules.bpmn2.query.ProcessQuery;
+import com.googlecode.easyec.modules.bpmn2.query.UserTaskHistoricQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.*;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
@@ -129,6 +130,17 @@ public class Bpmn2Test extends BaseBpmn2Test {
         ProcessObject process = list.get(0);
         CommentObject comment = process.getComments().get(0);
         System.out.println(comment);
+    }
+
+    @Test
+    public void findLastHistoricTasks() {
+        Page page = queryProcessService.findLastHistoricTasks(
+            new UserTaskHistoricQuery()
+                .includeConsign("V432SCH")
+                .orderByTaskEndTime(DESC)
+        );
+
+        Assert.assertNotNull(page);
     }
 
     @Test

@@ -46,6 +46,14 @@ public interface QueryProcessService {
 
     long countHistoricTasks(UserTaskHistoricQuery query);
 
+    Page findLastHistoricTasks(UserTaskHistoricQuery query);
+
+    Page findLastHistoricTasks(UserTaskHistoricQuery query, int pageSize);
+
+    List<TaskObject> getLastHistoricTasks(UserTaskHistoricQuery query);
+
+    long countLastHistoricTasks(UserTaskHistoricQuery query);
+
     Page findTaskConsigns(TaskConsignQuery query);
 
     Page findTaskConsigns(TaskConsignQuery query, int pageSize);

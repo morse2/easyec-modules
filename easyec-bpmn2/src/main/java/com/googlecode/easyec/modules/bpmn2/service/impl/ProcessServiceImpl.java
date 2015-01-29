@@ -203,6 +203,26 @@ public class ProcessServiceImpl implements ProcessService {
             );
         }
 
+        // Since 1.1.0 --在流程启动时，重新设置最新的流程定义的ID
+        ProcessDefinition processDefinition
+            = repositoryService.createProcessDefinitionQuery()
+            .processDefinitionKey(po.getProcessDefinitionKey())
+            .latestVersion()
+            .active()
+            .singleResult();
+
+        // 如果未能找到任何流程定义信息，则抛错
+        if (processDefinition == null) {
+            throw new ProcessNotFoundException(
+                "Cannot find process definition info. Process definition key: ["
+                    + po.getProcessDefinitionKey() + "]."
+            );
+        }
+
+        // 将最新的流程定义ID设置给此申请单
+        po.setProcessDefinitionId(processDefinition.getId());
+
+        // 设置流程实例的变量集合
         Map<String, Object> variables = new HashMap<String, Object>();
         if (isNotEmpty(params)) variables.putAll(params);
 

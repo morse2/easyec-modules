@@ -53,7 +53,7 @@ public interface TaskObjectDao {
      * @param params 查询条件
      * @return 任务定义对象
      */
-    List<TaskDefinition> groupByTaskDefition(Map<String, Object> params);
+    List<TaskDefinition> groupByTaskDefinition(Map<String, Object> params);
 
     /**
      * 分页查询历史用户任务信息
@@ -78,6 +78,36 @@ public interface TaskObjectDao {
      * @return 历史的用户任务数量
      */
     long countHistoricTasks(Map<String, Object> params);
+
+    /**
+     * 分页查询最近的历史用户任务信息。
+     * <b>最近的任务</b>是指相同流程实例
+     * 的最近一条历史任务记录
+     *
+     * @param page 分页对象
+     * @return 分页结果对象
+     */
+    Page findLastHistoric(Page page);
+
+    /**
+     * 根据条件查询最近的历史用户任务。
+     * <b>最近的任务</b>是指相同流程实例
+     * 的最近一条历史任务记录
+     *
+     * @param params 查询条件
+     * @return 最近的历史的用户任务列表
+     */
+    List<TaskObject> findLastHistoric(Map<String, Object> params);
+
+    /**
+     * 根据条件统计最近的历史用户任务数量。
+     * <b>最近的任务</b>是指相同流程实例
+     * 的最近一条历史任务记录
+     *
+     * @param params 查询条件
+     * @return 最近的历史的用户任务数量
+     */
+    long countLastHistoricTasks(Map<String, Object> params);
 
     /**
      * 通过任务ID，查询历史任务信息

@@ -83,7 +83,7 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
 
     @Override
     public List<TaskDefinition> groupByTaskDefinition(UserTaskQuery query) {
-        return taskObjectDao.groupByTaskDefition(extractQuery(query));
+        return taskObjectDao.groupByTaskDefinition(extractQuery(query));
     }
 
     @Override
@@ -104,6 +104,26 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
     @Override
     public long countHistoricTasks(UserTaskHistoricQuery query) {
         return taskObjectDao.countHistoricTasks(extractQuery(query));
+    }
+
+    @Override
+    public Page findLastHistoricTasks(UserTaskHistoricQuery query) {
+        return findLastHistoricTasks(query, getPageSize());
+    }
+
+    @Override
+    public Page findLastHistoricTasks(UserTaskHistoricQuery query, int pageSize) {
+        return taskObjectDao.findLastHistoric(createPage(query.getSearchFormBean(), pageSize));
+    }
+
+    @Override
+    public List<TaskObject> getLastHistoricTasks(UserTaskHistoricQuery query) {
+        return taskObjectDao.findLastHistoric(extractQuery(query));
+    }
+
+    @Override
+    public long countLastHistoricTasks(UserTaskHistoricQuery query) {
+        return taskObjectDao.countLastHistoricTasks(extractQuery(query));
     }
 
     @Override

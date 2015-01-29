@@ -71,9 +71,13 @@
         </if>
     </sql>
 
-    <sql id="HI_Task_Join_Tables">
+    <sql id="Base_HI_Task_Join_Tables">
         from ACT_HI_TASKINST HIS
         join BPM_PROC_ENTITY ENT on HIS.PROC_INST_ID_ = ENT.PROC_INST_ID
+    </sql>
+
+    <sql id="HI_Task_Join_Tables">
+        <include refid="Base_HI_Task_Join_Tables"/>
         ${customJoinSQL}
         <if test="candidateUser != null or claimed != null">
             join ACT_HI_IDENTITYLINK I on I.TASK_ID_ = RES.ID_
@@ -244,7 +248,7 @@
         <include refid="Search_Conditions"/>
     </select>
 
-    <select id="groupByTaskDefition" parameterType="hashmap" resultMap="TaskDefinitionResultMap">
+    <select id="groupByTaskDefinition" parameterType="hashmap" resultMap="TaskDefinitionResultMap">
         select RES.TASK_DEF_KEY_, RES.NAME_
         <include refid="RU_Task_Join_Tables"/>
         <include refid="Search_Conditions"/>
@@ -266,10 +270,38 @@
     </select>
 
     <select id="selectHistoric" parameterType="string" resultMap="BaseResultMap">
-        select distinct
+        select
         <include refid="Historic_Column_List"/>
         from ACT_HI_TASKINST HIS
         where HIS.ID_ = #{taskId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findLastHistoric" parameterType="hashmap" resultMap="BaseResultMap">
+        select
+        <include refid="Historic_Column_List"/>, ENT.REQUEST_TIME
+        <include refid="Base_HI_Task_Join_Tables"/>
+        join (select
+        HIS.PROC_INST_ID_,
+        MAX (HIS.END_TIME_) AS MAX_END_TIME_
+        <include refid="HI_Task_Join_Tables"/>
+        <include refid="Search_Conditions"/>
+        group by HIS.PROC_INST_ID_) t_
+        on HIS.PROC_INST_ID_ = t_.PROC_INST_ID_
+        and HIS.END_TIME_ = t_.MAX_END_TIME_
+        ${orderBy}
+    </select>
+
+    <select id="countLastHistoricTasks" parameterType="hashmap" resultType="long">
+        select count(distinct HIS.ID_)
+        <include refid="Base_HI_Task_Join_Tables"/>
+        join (select
+        HIS.PROC_INST_ID_,
+        MAX (HIS.END_TIME_) AS MAX_END_TIME_
+        <include refid="HI_Task_Join_Tables"/>
+        <include refid="Search_Conditions"/>
+        group by HIS.PROC_INST_ID_) t_
+        on HIS.PROC_INST_ID_ = t_.PROC_INST_ID_
+        and HIS.END_TIME_ = t_.MAX_END_TIME_
     </select>
 
     <select id="selectRuntimeCandidates" parameterType="long" resultType="string" useCache="false">
