@@ -73,7 +73,7 @@
 
     <sql id="Base_HI_Task_Join_Tables">
         from ACT_HI_TASKINST HIS
-        join BPM_PROC_ENTITY ENT on HIS.PROC_INST_ID_ = ENT.PROC_INST_ID
+        left join BPM_PROC_ENTITY ENT on HIS.PROC_INST_ID_ = ENT.PROC_INST_ID
     </sql>
 
     <sql id="HI_Task_Join_Tables">

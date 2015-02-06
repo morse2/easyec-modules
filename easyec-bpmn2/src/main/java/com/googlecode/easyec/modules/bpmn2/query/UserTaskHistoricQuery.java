@@ -21,6 +21,11 @@ public class UserTaskHistoricQuery extends CustomJoinQuery<UserTaskHistoricQuery
         addSearchTerm("hasEndTime", true);
     }
 
+    public UserTaskHistoricQuery allTasks() {
+        removeSearchTerm("hasEndTime");
+        return getSelf();
+    }
+
     public UserTaskHistoricQuery processDefinitionId(String processDefinitionId) {
         addSearchTerm("processDefinitionId", processDefinitionId);
         return getSelf();

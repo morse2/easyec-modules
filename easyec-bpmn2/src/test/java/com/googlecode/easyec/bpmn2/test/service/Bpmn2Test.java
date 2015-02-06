@@ -10,6 +10,8 @@ import com.googlecode.easyec.modules.bpmn2.query.ProcessQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskHistoricQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.*;
+import com.googlecode.easyec.modules.bpmn2.support.impl.CommentBehavior;
+import com.googlecode.easyec.modules.bpmn2.support.impl.ProcessRecallBehavior;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
 import com.googlecode.easyec.spirit.dao.paging.Page;
 import junit.framework.Assert;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.googlecode.easyec.modules.bpmn2.domain.ProcessMailConfig.FIRE_TYPE_TASK_ASSIGNED;
+import static com.googlecode.easyec.modules.bpmn2.support.impl.ProcessRecallBehavior.ProcessRecallBehaviorBuilder;
 import static com.googlecode.easyec.spirit.web.controller.sorts.Sort.SortTypes.ASC;
 import static com.googlecode.easyec.spirit.web.controller.sorts.Sort.SortTypes.DESC;
 
@@ -274,6 +277,65 @@ public class Bpmn2Test extends BaseBpmn2Test {
             .list();
 
         System.out.println(list);
+    }
+
+    @Test
+    public void findTasksThatNoAssignee() {
+        Page page = new UserTaskQuery()
+            .administrator("N195FYJ")
+            .noAssignee()
+            .orderByRequestTime(DESC)
+            .listPage(1, 10);
+
+        Assert.assertNotNull(page);
+
+        System.out.println(page.getTotalRecordsCount());
+    }
+
+    @Test
+    public void findTasksThatInPool() {
+        Page page = new UserTaskQuery()
+            .administrator("N195FYJ")
+            .inTaskPool()
+            .orderByRequestTime(DESC)
+            .listPage(1, 10);
+
+        Assert.assertNotNull(page);
+
+        System.out.println(page.getTotalRecordsCount());
+    }
+
+    @Test
+    public void recallByApplicant() throws DataPersistenceException {
+        Page page = new UserTaskHistoricQuery()
+            .processInstanceId("13101")
+            .applicantId("N195FYJ")
+            .allTasks()
+            .listPage(1, 2);
+
+        Assert.assertNotNull(page);
+
+        if (page.getTotalRecordsCount() > 1) {
+            Assert.fail("There is greater than 1 task(s).");
+        }
+
+        TaskObject task = (TaskObject) page.getRecords().get(0);
+        if (task.isEnd()) {
+            Assert.fail("Task is end.");
+        }
+
+        ProcessRecallBehavior behavior
+            = new ProcessRecallBehaviorBuilder()
+            .comment(
+                new CommentBehavior.CommentBehaviorBuilder()
+                    .comment("My recall test.")
+                    .build()
+            ).build();
+
+        processDelegateService.recall(
+            task.getProcessObject(),
+            behavior
+        );
     }
 
     private void _approveOrReject(ProcessObject entity, String userId, boolean approve)

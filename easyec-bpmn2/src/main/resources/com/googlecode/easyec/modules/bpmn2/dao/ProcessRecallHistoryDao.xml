@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.ProcessRecallHistoryDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessRecallHistoryImpl">
+        <id column="PROC_INST_ID" property="processInstanceId" jdbcType="VARCHAR"/>
+        <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP"/>
+
+        <association property="processObject" column="PROC_ENTI_ID"
+                     select="com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao.selectByPrimaryKey"
+                />
+    </resultMap>
+    <sql id="Base_Column_List">
+        PROC_ENTI_ID, PROC_INST_ID, CREATE_TIME
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="string">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_PROC_RECALHI
+        where PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="string">
+        DELETE FROM BPM_PROC_RECALHI
+        WHERE PROC_INST_ID = #{processInstanceId,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" parameterType="com.googlecode.easyec.modules.bpmn2.domain.ProcessRecallHistory">
+        INSERT INTO BPM_PROC_RECALHI (PROC_ENTI_ID, PROC_INST_ID, CREATE_TIME)
+        VALUES (#{processObject.uidPk,jdbcType=NUMERIC},
+                #{processInstanceId,jdbcType=VARCHAR},
+                #{createTime,jdbcType=TIMESTAMP})
+    </insert>
+</mapper>

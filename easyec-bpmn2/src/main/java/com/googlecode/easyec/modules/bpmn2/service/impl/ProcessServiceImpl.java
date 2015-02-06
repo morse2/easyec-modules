@@ -1,10 +1,13 @@
 package com.googlecode.easyec.modules.bpmn2.service.impl;
 
 import com.googlecode.easyec.modules.bpmn2.dao.ProcessObjectDao;
+import com.googlecode.easyec.modules.bpmn2.dao.ProcessRecallHistoryDao;
 import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ProcessRecallHistory;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl;
+import com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessRecallHistoryImpl;
 import com.googlecode.easyec.modules.bpmn2.keys.generator.BusinessKeyGenerator;
 import com.googlecode.easyec.modules.bpmn2.service.*;
 import org.activiti.engine.HistoryService;
@@ -47,6 +50,8 @@ public class ProcessServiceImpl implements ProcessService {
 
     @Resource
     private ProcessObjectDao processObjectDao;
+    @Resource
+    private ProcessRecallHistoryDao processRecallHistoryDao;
 
     @Resource
     private UserTaskService userTaskService;
@@ -167,6 +172,65 @@ public class ProcessServiceImpl implements ProcessService {
             po.setFinishTime(new Date());
             // 更新当前流程实体对象
             processObjectDao.updateByPrimaryKey(po);
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw e;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+
+            throw new ProcessPersistentException(e);
+        }
+    }
+
+    @Override
+    public ProcessRecallHistory recall(ProcessObject po, String reason) throws ProcessPersistentException {
+        try {
+            switch (po.getProcessStatus()) {
+                case DRAFT:
+                case ARCHIVED:
+                case DISCARD:
+                    throw new WrongProcessStatusException(
+                        "Only the status of process is 'IN-PROGRESS' can be recall."
+                    );
+            }
+
+            /*
+             * 当前此流程还在运行中，
+             * 则调用ACTIVITI框架方法，
+             * 召回正在运行的流程实例
+             */
+            long i = runtimeService.createExecutionQuery()
+                .processInstanceId(po.getProcessInstanceId())
+                .count();
+            logger.debug("Is current process running? [{}].", i > 0);
+
+            if (i > 0) {
+                // 删除流程实例
+                runtimeService.deleteProcessInstance(po.getProcessInstanceId(), reason);
+            }
+
+            // 新增流程召回历史记录
+            ProcessRecallHistory hi = new ProcessRecallHistoryImpl();
+            hi.setProcessInstanceId(po.getProcessInstanceId());
+            hi.setCreateTime(new Date());
+            hi.setProcessObject(po);
+
+            int j = processRecallHistoryDao.insert(hi);
+            logger.debug("Effect rows of inserting BPM_PROC_RECALHI. [{}].", j);
+
+            // 设置当前流程状态
+            po.setProcessStatus(DRAFT);
+            // 清空流程实例
+            po.setProcessInstanceId(null);
+            // 更新当前流程实体对象
+            processObjectDao.updateByPrimaryKey(po);
+
+            return hi;
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw e;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
 

@@ -1,9 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.support;
 
-import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
-import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
-import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
-import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
+import com.googlecode.easyec.modules.bpmn2.domain.*;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
@@ -23,6 +20,7 @@ import org.springframework.util.Assert;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +36,7 @@ import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskConsignBehavi
 import static com.googlecode.easyec.modules.bpmn2.support.impl.TaskResolveBehavior.TaskResolveBehaviorBuilder;
 import static com.googlecode.easyec.modules.bpmn2.utils.MailConfigUtils.sendMail;
 import static org.activiti.engine.impl.identity.Authentication.getAuthenticatedUserId;
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
@@ -135,6 +134,49 @@ public final class ProcessOperateInterceptor implements Ordered {
                     behavior.getCustomAction()
                 );
             }
+        } catch (ProcessPersistentException e) {
+            logger.error(e.getMessage(), e);
+
+            throw new DataPersistenceException(e);
+        }
+    }
+
+    /**
+     * 执行召回流程实例的后置方法
+     *
+     * @param entity
+     * @param behavior
+     * @throws Throwable
+     */
+    @After(
+        value = "execution(* com.*..*.service.*Service.recall(..)) && args(entity,behavior,..)",
+        argNames = "entity,behavior"
+    )
+    public void afterRecall(ProcessObject entity, ProcessRecallBehavior behavior) throws Throwable {
+        String pi = entity.getProcessInstanceId();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Prepare to recall process. Instance id: [{}].", pi);
+        }
+
+        try {
+            // 首先，找出当前流程实例下的待执行的任务集合
+            List<TaskObject> currentTasks = _findNextTasks(pi);
+            // 其次，召回当前正在运行中的流程实例
+            ProcessRecallHistory recallHi = processService.recall(entity, behavior.getComment());
+
+            // 为用户备注消息
+            if (behavior.isCommented()) {
+                userTaskService.createComment(
+                    entity, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getCustomAction()
+                );
+            }
+
+            // 执行邮件发送
+            _sendRecallMailForTasks(currentTasks, recallHi, behavior.getComment());
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -826,6 +868,28 @@ public final class ProcessOperateInterceptor implements Ordered {
     /* 查询下一个节点的用户任务列表 */
     private List<TaskObject> _findNextTasks(String processInstanceId) {
         return new UserTaskQuery().processInstanceId(processInstanceId).list();
+    }
+
+    /* 循环历史任务列表并为之发送邮件 */
+    private void _sendRecallMailForTasks(List<TaskObject> currentTasks, ProcessRecallHistory recallHi, String comment) {
+        Date endTime = new Date();
+
+        // 循环任务列表
+        for (TaskObject currentTask : currentTasks) {
+            currentTask.setEndTime(endTime);
+
+            // 判断任务处理人是否为空
+            if (isBlank(currentTask.getAssignee())) {
+                logger.warn("There has no any assignee to deal with the task. Task id: [{}].", currentTask.getTaskId());
+
+                continue;
+            }
+
+            // 重新设置流程对象
+            currentTask.setProcessObject(recallHi.getProcessObject());
+            // 执行邮件发送任务
+            sendMail(currentTask, null, comment, FIRE_TYPE_PROCESS_RECALL);
+        }
     }
 
     /* 循环任务列表并为之发送邮件 */

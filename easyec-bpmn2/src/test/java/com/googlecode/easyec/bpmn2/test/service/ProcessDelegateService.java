@@ -3,6 +3,7 @@ package com.googlecode.easyec.bpmn2.test.service;
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
+import com.googlecode.easyec.modules.bpmn2.support.impl.ProcessRecallBehavior;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
 
 import java.util.Map;
@@ -31,4 +32,6 @@ public interface ProcessDelegateService {
     void unclaim(TaskObject task, Map<String, Object> customVariables);
 
     void addComment(TaskObject task, CommentObject comment, Map<String, Object> customVariables);
+
+    void recall(ProcessObject po, ProcessRecallBehavior behavior) throws DataPersistenceException;
 }

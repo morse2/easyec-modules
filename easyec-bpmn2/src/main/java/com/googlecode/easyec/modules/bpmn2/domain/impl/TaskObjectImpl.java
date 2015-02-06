@@ -17,6 +17,7 @@ import static org.activiti.engine.task.DelegationState.PENDING;
  */
 public class TaskObjectImpl extends TaskDefinitionImpl implements TaskObject {
 
+    private static final long serialVersionUID = -1882195504682258506L;
     private String taskId;
     private String assignee;
     private String owner;
@@ -71,6 +72,11 @@ public class TaskObjectImpl extends TaskDefinitionImpl implements TaskObject {
     @Override
     public ProcessObject getProcessObject() {
         return processObject;
+    }
+
+    @Override
+    public void setProcessObject(ProcessObject processObject) {
+        this.processObject = processObject;
     }
 
     @Override

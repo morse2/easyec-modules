@@ -2,6 +2,7 @@ package com.googlecode.easyec.modules.bpmn2.service;
 
 import com.googlecode.easyec.modules.bpmn2.domain.AttachmentObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
+import com.googlecode.easyec.modules.bpmn2.domain.ProcessRecallHistory;
 
 import java.util.Map;
 
@@ -19,6 +20,8 @@ public interface ProcessService {
     void generateBusinessKey(ProcessObject entity);
 
     void discard(ProcessObject po, String reason) throws ProcessPersistentException;
+
+    ProcessRecallHistory recall(ProcessObject po, String reason) throws ProcessPersistentException;
 
     void startProcess(ProcessObject entity) throws ProcessPersistentException;
 
