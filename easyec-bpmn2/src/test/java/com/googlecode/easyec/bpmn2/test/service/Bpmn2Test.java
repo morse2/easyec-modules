@@ -139,11 +139,19 @@ public class Bpmn2Test extends BaseBpmn2Test {
     public void findLastHistoricTasks() {
         Page page = queryProcessService.findLastHistoricTasks(
             new UserTaskHistoricQuery()
-                .includeConsign("V432SCH")
+                .includeConsign("D755CUC")
                 .orderByTaskEndTime(DESC)
         );
 
         Assert.assertNotNull(page);
+
+        long count = queryProcessService.countLastHistoricTasks(
+            new UserTaskHistoricQuery()
+                .includeConsign("D755CUC")
+                .orderByTaskEndTime(DESC)
+        );
+
+        Assert.assertTrue(count > 0);
     }
 
     @Test
