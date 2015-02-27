@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.googlecode.easyec.modules.bpmn2.utils.ProcessConstant.ROLE_TYPE_FLOW_ADMIN;
 import static org.apache.commons.collections.MapUtils.isNotEmpty;
 
 /**
@@ -48,15 +49,21 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
 
     @Override
     public List<ProcessDefinition> findProcessDefinitionsByFlowAdmin(String userId) {
+        return findProcessDefinitionsForProcess(userId, ROLE_TYPE_FLOW_ADMIN);
+    }
+
+    @Override
+    public List<ProcessDefinition> findProcessDefinitionsForProcess(String userId, String roleType) {
         StringBuffer querySql = new StringBuffer();
 
         querySql.append(" select RES.* from ACT_RE_PROCDEF RES JOIN BPM_PROC_ROLE_RELATION prr ON RES.KEY_ = prr.PROC_DEF_KEY ");
-        querySql.append(" JOIN BPM_PROC_ROLE pr ON prr.proc_role_code = pr.role_code AND pr.role_type = 'admin' AND pr.enabled = 1 ");
+        querySql.append(" JOIN BPM_PROC_ROLE pr ON prr.proc_role_code = pr.role_code AND pr.role_type = #{roleType} AND pr.enabled = 1 ");
         querySql.append(" JOIN ACT_ID_MEMBERSHIP M ON M .group_id_ = prr. GROUP_ID where M .user_id_ = #{userId} ");
         querySql.append(" AND RES.VERSION_ = (select max(VERSION_) from ACT_RE_PROCDEF where KEY_ = RES.KEY_) AND (RES.SUSPENSION_STATE_ = 1) ");
         querySql.append(" order by RES.TENANT_ID_ ASC, RES.KEY_ ASC ");
 
         return repositoryService.createNativeProcessDefinitionQuery()
+            .parameter("roleType", roleType)
             .parameter("userId", userId)
             .sql(querySql.toString())
             .list();

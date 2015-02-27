@@ -25,6 +25,15 @@ public interface ProcessManagementService {
     List<ProcessDefinition> findProcessDefinitionsByFlowAdmin(String userId);
 
     /**
+     * 查询给定角色类型对应的可见流程信息
+     *
+     * @param userId   用户ID
+     * @param roleType 流程角色类型
+     * @return 流程定义列表
+     */
+    List<ProcessDefinition> findProcessDefinitionsForProcess(String userId, String roleType);
+
+    /**
      * 查询流程申请人可见的流程信息
      *
      * @param userId 用户ID

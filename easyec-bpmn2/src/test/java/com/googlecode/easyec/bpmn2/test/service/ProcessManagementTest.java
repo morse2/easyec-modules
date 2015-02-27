@@ -52,6 +52,9 @@ public class ProcessManagementTest extends BaseBpmn2Test {
 
         List<ProcessDefinition> list = processManagementService.findProcessDefinitionsByApplicant("Q972EYJ");
         System.out.println(list);
+
+        List<ProcessDefinition> definitions = processManagementService.findProcessDefinitionsForProcess("N195FYJ", "bd_report");
+        System.out.println(definitions);
     }
 
     @Test
