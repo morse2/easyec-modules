@@ -76,6 +76,9 @@ public class ProcessManagementTest extends BaseBpmn2Test {
     @Test
     public void listMyRoles() {
         List<BpmRole> list = processManagementService.findUserRoles("N195FYJ");
-        System.out.println(list);
+        for (BpmRole role : list) {
+            List<String> keys = role.getProcessDefinitionKeys();
+            System.out.println(keys);
+        }
     }
 }

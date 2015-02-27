@@ -4,6 +4,8 @@ import com.googlecode.easyec.modules.bpmn2.domain.ctrl.BpmRoleCtrl;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.RoleScopes;
 import com.googlecode.easyec.spirit.domain.DomainModel;
 
+import java.util.List;
+
 /**
  * 业务流程框架的角色类
  *
@@ -16,4 +18,6 @@ public interface BpmRole extends DomainModel, BpmRoleCtrl {
     RoleScopes getRoleScope();
 
     String getRoleType();
+
+    List<String> getProcessDefinitionKeys();
 }

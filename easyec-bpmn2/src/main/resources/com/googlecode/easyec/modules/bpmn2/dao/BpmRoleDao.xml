@@ -5,6 +5,11 @@
         <id column="ROLE_CODE" property="roleCode" jdbcType="VARCHAR"/>
         <result column="ROLE_SCOPE" property="roleScope" jdbcType="VARCHAR"/>
         <result column="ROLE_TYPE" property="roleType" jdbcType="VARCHAR"/>
+
+        <collection property="processDefinitionKeys"
+                    column="ROLE_CODE"
+                    select="selectProcDefKeysByRoleCode"
+                />
     </resultMap>
 
     <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
@@ -25,5 +30,11 @@
             JOIN bpm_proc_role_relation prr ON pr.role_code = prr.proc_role_code
             JOIN act_id_membership m ON prr.group_id = m.group_id_
         WHERE m.user_id_ = #{userId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectProcDefKeysByRoleCode" parameterType="string" resultType="string">
+        SELECT proc_def_key
+        FROM BPM_PROC_ROLE_RELATION
+        WHERE PROC_ROLE_CODE = #{roleCode,jdbcType=VARCHAR}
     </select>
 </mapper>
