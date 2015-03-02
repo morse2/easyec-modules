@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.googlecode.easyec.modules.bpmn2.dao.ProcessAutoApprovalConfigDao">
+    <resultMap id="BaseResultMap" type="com.googlecode.easyec.modules.bpmn2.domain.impl.ProcessAutoApprovalConfigImpl">
+        <id column="UIDPK" property="uidPk" jdbcType="NUMERIC"/>
+        <result column="PROC_DEF_KEY" property="processDefinitionKey" jdbcType="VARCHAR"/>
+        <result column="TASK_DEF_KEY" property="taskDefinitionKey" jdbcType="VARCHAR"/>
+        <result column="ON_PROCESS" property="onProcess" jdbcType="SMALLINT"/>
+        <result column="ENABLED" property="enable" jdbcType="SMALLINT"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        UIDPK, PROC_DEF_KEY, TASK_DEF_KEY, ON_PROCESS, ENABLED
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from BPM_PROC_AUTOAPPR_CONF
+        where UIDPK = #{uidPk,jdbcType=NUMERIC}
+    </select>
+
+    <select id="countBy" parameterType="hashmap" resultType="int">
+        select count(distinct uidpk)
+        from BPM_PROC_AUTOAPPR_CONF
+        <where>
+            enabled = 1 and
+            (
+            proc_def_key = #{procDefKey,jdbcType=VARCHAR}
+            and on_process = 1
+            )
+            <if test="taskDefKey != null">
+                or (
+                proc_def_key = #{procDefKey,jdbcType=VARCHAR}
+                and task_def_key = #{taskDefKey,jdbcType=VARCHAR}
+                and on_process = 0
+                )
+            </if>
+        </where>
+    </select>
+</mapper>

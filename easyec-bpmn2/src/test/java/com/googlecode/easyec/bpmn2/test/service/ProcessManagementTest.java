@@ -9,6 +9,7 @@ import com.googlecode.easyec.modules.bpmn2.service.UserExistsException;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
 import com.googlecode.easyec.spirit.dao.paging.Page;
 import com.googlecode.easyec.spirit.web.controller.formbean.impl.SearchFormBean;
+import junit.framework.Assert;
 import org.activiti.engine.IdentityService;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.junit.Test;
@@ -53,7 +54,7 @@ public class ProcessManagementTest extends BaseBpmn2Test {
         List<ProcessDefinition> list = processManagementService.findProcessDefinitionsByApplicant("Q972EYJ");
         System.out.println(list);
 
-        List<ProcessDefinition> definitions = processManagementService.findProcessDefinitionsForProcess("N195FYJ", "bd_report");
+        List<ProcessDefinition> definitions = processManagementService.findProcessDefinitionsForProcess("N395FER", "admin");
         System.out.println(definitions);
     }
 
@@ -80,5 +81,14 @@ public class ProcessManagementTest extends BaseBpmn2Test {
             List<String> keys = role.getProcessDefinitionKeys();
             System.out.println(keys);
         }
+    }
+
+    @Test
+    public void isTaskAutoApprove() {
+        boolean b = processManagementService.isTaskApprovedAutomatically(
+            "normal_flow", "BGMTask"
+        );
+
+        Assert.assertTrue(b);
     }
 }

@@ -76,4 +76,12 @@ public interface ProcessManagementService {
      * @param userId 用户ID
      */
     void deleteUser(String userId) throws DataPersistenceException;
+
+    /**
+     * 判断任务是否能够接受自动审批提交的操作
+     *
+     * @param processDefinitionKey 流程定义KEY
+     * @param taskDefinitionKey    任务定义KEY
+     */
+    boolean isTaskApprovedAutomatically(String processDefinitionKey, String taskDefinitionKey);
 }

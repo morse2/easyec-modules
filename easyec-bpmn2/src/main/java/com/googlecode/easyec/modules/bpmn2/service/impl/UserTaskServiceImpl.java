@@ -11,6 +11,7 @@ import com.googlecode.easyec.modules.bpmn2.domain.impl.CommentObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskConsignImpl;
 import com.googlecode.easyec.modules.bpmn2.domain.impl.ExtraTaskObjectImpl;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
+import com.googlecode.easyec.modules.bpmn2.service.ProcessManagementService;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
@@ -77,6 +78,9 @@ public class UserTaskServiceImpl implements UserTaskService {
 
     @Resource
     private QueryProcessService queryProcessService;
+
+    @Resource
+    private ProcessManagementService processManagementService;
 
     @Override
     public void claimTask(String taskId, String userId) throws ProcessPersistentException {
@@ -300,11 +304,11 @@ public class UserTaskServiceImpl implements UserTaskService {
     @Override
     public boolean hasApprovalPeople(String taskId) {
         return taskService.createNativeTaskQuery()
-        .sql(
-            "select count(distinct t.id_) from ACT_RU_TASK t left join ACT_RU_IDENTITYLINK i on t.id_ = i.task_id_" +
-                " where t.id_ = #{taskId,jdbcType=VARCHAR} and (t.assignee_ is not null or (i.type_ = 'candidate' and i.id_ is not null))"
-        ).parameter("taskId", taskId)
-        .count() > 0;
+            .sql(
+                "select count(distinct t.id_) from ACT_RU_TASK t left join ACT_RU_IDENTITYLINK i on t.id_ = i.task_id_" +
+                    " where t.id_ = #{taskId,jdbcType=VARCHAR} and (t.assignee_ is not null or (i.type_ = 'candidate' and i.id_ is not null))"
+            ).parameter("taskId", taskId)
+            .count() > 0;
     }
 
     /* 创建备注的默认方法 */
@@ -424,7 +428,7 @@ public class UserTaskServiceImpl implements UserTaskService {
         throws ProcessPersistentException {
         try {
             processObjectDao.updateByPrimaryKey(po);
-            // TODO 未来支持可配置选择是否一人只需审批一次
+            // 递归用户任务，并且执行必要的判断，是否需要执行自动审批逻辑
             _recursiveCompleteUserTask(task.getTaskId(), task.getAssignee(), po, variables);
             // 获取下一个用户任务节点的名称
             List<Task> taskList
@@ -522,6 +526,20 @@ public class UserTaskServiceImpl implements UserTaskService {
                 logger.info(
                     "The task assignee is equals with process applicant. So ignore approve logic."
                 );
+
+                continue;
+            }
+
+            // 判断任务是否需要系统自动进行审批操作
+            boolean b = processManagementService.isTaskApprovedAutomatically(
+                po.getProcessDefinitionKey(),
+                task.getTaskDefinitionKey()
+            );
+            logger.debug("Should the task be approved automatically? [{}]", b);
+
+            if (!b) {
+                logger.debug("Task shouldn't be approved by system. Process key: [{}], task key: [{}]",
+                    po.getProcessDefinitionKey(), task.getTaskDefinitionKey());
 
                 continue;
             }

@@ -1,6 +1,7 @@
 package com.googlecode.easyec.modules.bpmn2.service.impl;
 
 import com.googlecode.easyec.modules.bpmn2.dao.BpmRoleDao;
+import com.googlecode.easyec.modules.bpmn2.dao.ProcessAutoApprovalConfigDao;
 import com.googlecode.easyec.modules.bpmn2.domain.BpmRole;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessManagementService;
 import com.googlecode.easyec.modules.bpmn2.service.UserExistsException;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +45,9 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
 
     @Resource
     private BpmRoleDao bpmRoleDao;
+
+    @Resource
+    private ProcessAutoApprovalConfigDao processAutoApprovalConfigDao;
 
     @Resource
     private PageDelegate pageConfigurer;
@@ -182,6 +187,15 @@ public class ProcessManagementServiceImpl implements ProcessManagementService {
         }
 
         identityService.deleteUser(userId);
+    }
+
+    @Override
+    public boolean isTaskApprovedAutomatically(String processDefinitionKey, String taskDefinitionKey) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("procDefKey", processDefinitionKey);
+        params.put("taskDefKey", taskDefinitionKey);
+
+        return processAutoApprovalConfigDao.countBy(params) > 0;
     }
 
     private int _getFirstResult(int currentPage) {
