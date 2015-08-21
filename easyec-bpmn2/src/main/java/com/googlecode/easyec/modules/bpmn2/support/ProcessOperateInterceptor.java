@@ -9,7 +9,7 @@ import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
 import com.googlecode.easyec.modules.bpmn2.support.impl.*;
 import com.googlecode.easyec.spirit.dao.DataPersistenceException;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -89,7 +89,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param entity 流程实体对象
      * @throws Throwable
      */
-    @After("execution(* com.*..*.service.*Service.deleteDraft(..)) && args(entity,..)")
+    @AfterReturning("execution(* com.*..*.service.*Service.deleteDraft(..)) && args(entity,..)")
     public void afterDeleteDraft(ProcessObject entity) throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug("Prepare to delete a draft process entity. \n{");
@@ -112,7 +112,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param entity 流程实体对象
      * @throws Throwable
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.discard(..)) && args(entity,behavior,..)",
         argNames = "entity,behavior"
     )
@@ -148,7 +148,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param behavior
      * @throws Throwable
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.recall(..)) && args(entity,behavior,..)",
         argNames = "entity,behavior"
     )
@@ -190,7 +190,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param entity 流程实体对象
      * @throws Throwable
      */
-    @After("execution(* com.*..*.service.*Service.prepareToNew(..)) && args(entity,..)")
+    @AfterReturning("execution(* com.*..*.service.*Service.prepareToNew(..)) && args(entity,..)")
     public void afterPrepareToNew(ProcessObject entity) throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug("Prepare to create a new draft process entity. \n{");
@@ -286,7 +286,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @see #afterCompleted(TaskObject, TaskAuditBehavior)
      * @deprecated
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.approve(..)) && args(task,comment,variables,..)",
         argNames = "task,comment,variables"
     )
@@ -305,7 +305,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @see #afterCompleted(TaskObject, TaskAuditBehavior)
      * @deprecated
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.approve(..)) && args(task,comment,variables,commented,..)",
         argNames = "task,comment,variables,commented"
     )
@@ -346,7 +346,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @see #afterCompleted(TaskObject, TaskAuditBehavior)
      * @deprecated
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.reject(..)) && args(task,comment,variables,..)",
         argNames = "task,comment,variables"
     )
@@ -365,7 +365,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @see #afterCompleted(TaskObject, TaskAuditBehavior)
      * @deprecated
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.reject(..)) && args(task,comment,variables,commented,..)",
         argNames = "task,comment,variables,commented"
     )
@@ -403,7 +403,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @see #afterCompleted(TaskObject, TaskAuditBehavior)
      * @deprecated
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.rejectPartially(..)) && args(task,comment,variables,..)",
         argNames = "task,comment,variables"
     )
@@ -422,7 +422,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @see #afterCompleted(TaskObject, TaskAuditBehavior)
      * @deprecated
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.rejectPartially(..)) && args(task,comment,variables,commented,..)",
         argNames = "task,comment,variables,commented"
     )
@@ -456,7 +456,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param behavior 任务审批行为对象
      * @throws Throwable
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.complete(..)) && args(task,behavior,..)",
         argNames = "task,behavior"
     )
@@ -498,7 +498,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param task 任务实体对象
      * @throws Throwable
      */
-    @After("execution(* com.*..*.service.*Service.claim(..)) && args(task,..)")
+    @AfterReturning("execution(* com.*..*.service.*Service.claim(..)) && args(task,..)")
     public void afterClaim(TaskObject task) throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug("Prepare to claim this task. Task id: [{}].", task.getTaskId());
@@ -526,7 +526,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param task 任务实体对象
      * @throws Throwable
      */
-    @After("execution(* com.*..*.service.*Service.unclaim(..)) && args(task,..)")
+    @AfterReturning("execution(* com.*..*.service.*Service.unclaim(..)) && args(task,..)")
     public void afterUnclaim(TaskObject task) throws Throwable {
         if (logger.isDebugEnabled()) {
             logger.debug("Prepare to unclaim this task. Task id: [{}].", task.getTaskId());
@@ -582,7 +582,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param task 任务实体对象
      * @throws Throwable
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.consign(..)) && args(task,userId,comment,..)",
         argNames = "task,userId,comment"
     )
@@ -602,7 +602,7 @@ public final class ProcessOperateInterceptor implements Ordered {
         _doConsign(task, builder.build());
     }
 
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.consign(..)) && args(task,behavior,..)",
         argNames = "task,behavior"
     )
@@ -619,7 +619,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param variables 流程变量
      * @throws Throwable
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,agree,comment,variables,..)",
         argNames = "task,agree,comment,variables"
     )
@@ -638,7 +638,7 @@ public final class ProcessOperateInterceptor implements Ordered {
      * @param variables 流程变量
      * @throws Throwable
      */
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,agree,type,comment,variables,..)",
         argNames = "task,agree,type,comment,variables"
     )
@@ -662,7 +662,7 @@ public final class ProcessOperateInterceptor implements Ordered {
         _doResolve(task, builder.build());
     }
 
-    @After(
+    @AfterReturning(
         value = "execution(* com.*..*.service.*Service.resolve(..)) && args(task,behavior,..)",
         argNames = "task,behavior"
     )

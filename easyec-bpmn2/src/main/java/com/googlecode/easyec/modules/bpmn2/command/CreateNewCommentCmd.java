@@ -1,10 +1,10 @@
 package com.googlecode.easyec.modules.bpmn2.command;
 
+import com.googlecode.easyec.modules.bpmn2.command.persistence.entity.CommentEntity;
 import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.interceptor.Command;
 import org.activiti.engine.impl.interceptor.CommandContext;
-import org.activiti.engine.impl.persistence.entity.CommentEntity;
 import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Event;
 
