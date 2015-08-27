@@ -15,6 +15,7 @@ import com.googlecode.easyec.modules.bpmn2.service.ProcessManagementService;
 import com.googlecode.easyec.modules.bpmn2.service.ProcessPersistentException;
 import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
 import com.googlecode.easyec.modules.bpmn2.service.UserTaskService;
+import com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior;
 import com.googlecode.easyec.modules.bpmn2.task.NewTask;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.ManagementService;
@@ -105,18 +106,18 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     @Override
-    public void approveTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException {
-        _completeUserTask(task, false, variables);
+    public void approveTask(TaskObject task, TaskAuditBehavior behavior) throws ProcessPersistentException {
+        _completeUserTask(task, false, behavior);
     }
 
     @Override
-    public void rejectTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException {
-        _completeUserTask(task, true, false, variables);
+    public void rejectTask(TaskObject task, TaskAuditBehavior behavior) throws ProcessPersistentException {
+        _completeUserTask(task, true, false, behavior);
     }
 
     @Override
-    public void rejectTaskPartially(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException {
-        _completeUserTask(task, false, true, variables);
+    public void rejectTaskPartially(TaskObject task, TaskAuditBehavior behavior) throws ProcessPersistentException {
+        _completeUserTask(task, false, true, behavior);
     }
 
     @Override
@@ -147,7 +148,7 @@ public class UserTaskServiceImpl implements UserTaskService {
 
     @Override
     public void resolveTask(TaskObject task, String status, String commentId, Map<String, Object> variables)
-    throws ProcessPersistentException {
+        throws ProcessPersistentException {
         try {
             // 创建任务委托的历史记录
             Date currentTime = new Date();
@@ -174,7 +175,7 @@ public class UserTaskServiceImpl implements UserTaskService {
 
     @Override
     public CommentObject createComment(TaskObject task, String type, String comment, String role, String action)
-    throws ProcessPersistentException {
+        throws ProcessPersistentException {
         return _createComment(
             task.getTaskId(),
             task.getProcessObject().getProcessInstanceId(),
@@ -187,7 +188,7 @@ public class UserTaskServiceImpl implements UserTaskService {
 
     @Override
     public CommentObject createComment(ProcessObject po, String type, String comment, String role, String action)
-    throws ProcessPersistentException {
+        throws ProcessPersistentException {
         return _createComment(null, po.getProcessInstanceId(), type, comment, role, action);
     }
 
@@ -360,19 +361,19 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 执行用户任务的完成操作 */
-    private void _completeUserTask(TaskObject task, boolean reject, Map<String, Object> variables)
+    private void _completeUserTask(TaskObject task, boolean reject, TaskAuditBehavior behavior)
         throws ProcessPersistentException {
         ProcessObject po = task.getProcessObject();
 
         // 更新流程实体对象的属性
         po.setRejected(reject);
         // 完成流程当前任务的操作
-        _completeUserTask(task, po, variables);
+        _completeUserTask(task, po, behavior);
     }
 
     /* 执行用户任务的完成操作 */
     private void _completeUserTask(
-        TaskObject task, boolean reject, boolean partialReject, Map<String, Object> variables
+        TaskObject task, boolean reject, boolean partialReject, TaskAuditBehavior behavior
     ) throws ProcessPersistentException {
         ProcessObject po = task.getProcessObject();
 
@@ -380,7 +381,7 @@ public class UserTaskServiceImpl implements UserTaskService {
         po.setRejected(reject);
         po.setPartialRejected(partialReject);
         // 完成流程当前任务的操作
-        _completeUserTask(task, po, variables);
+        _completeUserTask(task, po, behavior);
     }
 
     /* 更新任务扩展表中的处理人 */
@@ -424,12 +425,36 @@ public class UserTaskServiceImpl implements UserTaskService {
     }
 
     /* 完成流程当前任务的操作 */
-    private void _completeUserTask(TaskObject task, ProcessObject po, Map<String, Object> variables)
+    private void _completeUserTask(TaskObject task, ProcessObject po, TaskAuditBehavior behavior)
         throws ProcessPersistentException {
         try {
             processObjectDao.updateByPrimaryKey(po);
+
+            // 更新存在的任务历史扩展表的状态
+            _updateExtraHistoricTask(
+                task.getTaskId(),
+                task.getAssignee().equals(po.getCreateUser()),
+                po.isRejected()
+            );
+
+            // 如果标记创建备注，则进行创建
+            if (behavior.isCommented()) {
+                createComment(
+                    task, behavior.getCommentType(),
+                    behavior.getComment(),
+                    behavior.getCustomRole(),
+                    behavior.getStatus()
+                );
+            }
+
             // 递归用户任务，并且执行必要的判断，是否需要执行自动审批逻辑
-            _recursiveCompleteUserTask(task.getTaskId(), task.getAssignee(), po, variables);
+            _recursiveCompleteUserTask(
+                task.getTaskId(),
+                task.getAssignee(),
+                po, behavior.getVariables(),
+                false
+            );
+
             // 获取下一个用户任务节点的名称
             List<Task> taskList
                 = taskService.createTaskQuery()
@@ -490,16 +515,24 @@ public class UserTaskServiceImpl implements UserTaskService {
 
     /* 递归完成用户任务的方法 */
     private void _recursiveCompleteUserTask(
-        String taskId, String assignee, ProcessObject po, Map<String, Object> variables
+        String taskId, String assignee, ProcessObject po, Map<String, Object> variables, boolean needUpdateExTask
     )
         throws ProcessPersistentException {
         // 获取流程实例ID
         String processInstanceId = po.getProcessInstanceId();
 
+        // 是否需要更新任务的额外信息
+        if (needUpdateExTask) {
+            // 更新存在的任务历史扩展表的状态
+            _updateExtraHistoricTask(
+                taskId,
+                assignee.equals(po.getCreateUser()),
+                po.isRejected()
+            );
+        }
+
         // 继续流程的执行
         taskService.complete(taskId, variables);
-        // 更新存在的任务历史扩展表的状态
-        _updateExtraHistoricTask(taskId, assignee.equals(po.getCreateUser()), po.isRejected());
 
         // 如果当前任务是被拒绝的，那么系统将跳过自动审批的任务逻辑
         if (po.isRejected()) {
@@ -553,12 +586,12 @@ public class UserTaskServiceImpl implements UserTaskService {
                 if (extraTaskObjectDao.countTasksAsReject(params) > 0) {
                     logger.info("The assignee has approved historic tasks. Assignee: [{}].", task.getAssignee());
 
-                    _recursiveCompleteUserTask(task.getId(), task.getAssignee(), po, variables);
+                    _recursiveCompleteUserTask(task.getId(), task.getAssignee(), po, variables, true);
                 }
             } else if (extraTaskObjectDao.countTasksAsApprove(params) > 0) {
                 logger.info("The assignee has approved historic tasks. Assignee: [{}].", task.getAssignee());
 
-                _recursiveCompleteUserTask(task.getId(), task.getAssignee(), po, variables);
+                _recursiveCompleteUserTask(task.getId(), task.getAssignee(), po, variables, true);
             }
         }
     }

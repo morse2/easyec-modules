@@ -675,17 +675,7 @@ public final class ProcessOperateInterceptor implements Ordered {
     private void _doPartialReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
             // 审核通过并部分拒绝逻辑
-            userTaskService.rejectTaskPartially(task, behavior.getVariables());
-
-            // 如果标记创建备注，则进行创建
-            if (behavior.isCommented()) {
-                userTaskService.createComment(
-                    task, behavior.getCommentType(),
-                    behavior.getComment(),
-                    behavior.getCustomRole(),
-                    behavior.getCustomAction()
-                );
-            }
+            userTaskService.rejectTaskPartially(task, behavior);
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -719,18 +709,8 @@ public final class ProcessOperateInterceptor implements Ordered {
                 task.setAssignee(userId);
             }
 
-            // 如果标记创建备注，则进行创建
-            if (behavior.isCommented()) {
-                userTaskService.createComment(
-                    task, behavior.getCommentType(),
-                    behavior.getComment(),
-                    behavior.getCustomRole(),
-                    behavior.getCustomAction()
-                );
-            }
-
             // 执行拒绝操作，这样任务即撤回给申请人
-            userTaskService.rejectTask(task, behavior.getVariables());
+            userTaskService.rejectTask(task, behavior);
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -748,17 +728,7 @@ public final class ProcessOperateInterceptor implements Ordered {
     private void _doReject(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
             // 审核拒绝当前任务
-            userTaskService.rejectTask(task, behavior.getVariables());
-
-            // 如果标记创建备注，则进行创建
-            if (behavior.isCommented()) {
-                userTaskService.createComment(
-                    task, behavior.getCommentType(),
-                    behavior.getComment(),
-                    behavior.getCustomRole(),
-                    behavior.getCustomAction()
-                );
-            }
+            userTaskService.rejectTask(task, behavior);
 
             // 执行邮件发送
             _loopTasksForSendingMail(
@@ -776,17 +746,7 @@ public final class ProcessOperateInterceptor implements Ordered {
     private void _doApprove(TaskObject task, TaskAuditBehavior behavior) throws DataPersistenceException {
         try {
             // 审核通过当前的任务
-            userTaskService.approveTask(task, behavior.getVariables());
-
-            // 如果标记创建备注，则进行创建
-            if (behavior.isCommented()) {
-                userTaskService.createComment(
-                    task, behavior.getCommentType(),
-                    behavior.getComment(),
-                    behavior.getCustomRole(),
-                    behavior.getStatus()
-                );
-            }
+            userTaskService.approveTask(task, behavior);
 
             // 执行邮件发送
             _loopTasksForSendingMail(

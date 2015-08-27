@@ -5,6 +5,7 @@ import com.googlecode.easyec.modules.bpmn2.domain.ExtraTaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.ProcessObject;
 import com.googlecode.easyec.modules.bpmn2.domain.TaskObject;
 import com.googlecode.easyec.modules.bpmn2.domain.enums.CommentTypes;
+import com.googlecode.easyec.modules.bpmn2.support.impl.TaskAuditBehavior;
 import com.googlecode.easyec.modules.bpmn2.task.NewTask;
 
 import java.util.Map;
@@ -20,11 +21,11 @@ public interface UserTaskService {
 
     void unclaimTask(String taskId);
 
-    void approveTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException;
+    void approveTask(TaskObject task, TaskAuditBehavior behavior) throws ProcessPersistentException;
 
-    void rejectTask(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException;
+    void rejectTask(TaskObject task, TaskAuditBehavior behavior) throws ProcessPersistentException;
 
-    void rejectTaskPartially(TaskObject task, Map<String, Object> variables) throws ProcessPersistentException;
+    void rejectTaskPartially(TaskObject task, TaskAuditBehavior behavior) throws ProcessPersistentException;
 
     void delegateTask(TaskObject task, String userId, String commentId) throws ProcessPersistentException;
 
