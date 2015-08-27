@@ -436,6 +436,18 @@ public class ProcessServiceImpl implements ProcessService {
         return _getProcessObject(processEntityId).isPartialRejected();
     }
 
+    @Override
+    public void update(ProcessObject po) throws ProcessPersistentException {
+        try {
+            int i = processObjectDao.updateByPrimaryKey(po);
+            logger.debug("Effect rows of updating BPM_PROC_ENTITY. [{}].", i);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+
+            throw new ProcessPersistentException(e);
+        }
+    }
+
     /* 获取流程对象 */
     private ProcessObject _getProcessObject(Long processEntityId) throws ProcessNotFoundException {
         ProcessObject entity = processObjectDao.selectByPrimaryKey(processEntityId);

@@ -37,4 +37,6 @@ public interface ProcessService {
     boolean isRejected(Long processInstanceId) throws ProcessNotFoundException;
 
     boolean isPartialRejected(Long processEntityId) throws ProcessNotFoundException;
+
+    void update(ProcessObject po) throws ProcessPersistentException;
 }

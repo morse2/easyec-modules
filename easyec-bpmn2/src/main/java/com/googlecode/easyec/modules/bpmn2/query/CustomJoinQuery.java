@@ -68,6 +68,46 @@ public abstract class CustomJoinQuery<T> extends AbstractQuery<T> {
     }
 
     /**
+     * 添加自定义的join语句。
+     * 第二个参数的列应该跟
+     * Table B的{@code colB}相对应
+     *
+     * @param tableA 业务表
+     * @param colA   Table A中的列名
+     * @param colB   Table B中的列名
+     * @return 返回泛型对象实例
+     */
+    public T customJoin(String tableA, String colA, String colB) {
+        return customJoin(tableA, colA, colB, false);
+    }
+
+    /**
+     * 添加自定义的join语句。
+     * 第二个参数的列应该跟
+     * Table B的{@code colB}相对应
+     *
+     * @param tableA   业务表
+     * @param colA     Table A中的列名
+     * @param colB     Table B中的列名
+     * @param leftJoin 表示是否做left join
+     * @return 返回泛型对象实例
+     */
+    public T customJoin(String tableA, String colA, String colB, boolean leftJoin) {
+        return join(
+
+            new StringBuffer()
+                .append(leftJoin ? " left " : "")
+                .append(" join ")
+                .append(tableA)
+                .append(" on ")
+                .append(colA)
+                .append(" = ")
+                .append(colB)
+                .toString()
+        );
+    }
+
+    /**
      * 添加一句自定义的查询条件语句。
      * 该语句不应包含where关键字
      *
