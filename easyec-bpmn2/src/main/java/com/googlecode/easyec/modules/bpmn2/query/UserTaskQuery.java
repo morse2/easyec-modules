@@ -149,6 +149,11 @@ public class UserTaskQuery extends CustomJoinQuery<UserTaskQuery> {
         return getSelf();
     }
 
+    public UserTaskQuery orderByStartTime(Sort.SortTypes direction) {
+        addSort("HIS.START_TIME_", direction);
+        return getSelf();
+    }
+
     @Override
     protected String getProcessEntityAlias() {
         return "ENT";

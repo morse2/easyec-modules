@@ -38,45 +38,46 @@ public class MailConfigUtils {
 
         // 获取邮件的配置信息
         List<ProcessMailConfig> mailConfigs
-                = new ProcessMailConfigQuery()
-                .processEntityId(processEntityId)
-                .fireType(fireType)
-                .list();
+            = new ProcessMailConfigQuery()
+            .processEntityId(processEntityId)
+            .fireType(fireType)
+            .list();
 
         // 如果没有邮件配置信息，则不发送邮件
         if (isEmpty(mailConfigs)) {
             logger.warn(
-                    "No Process mail configuration was found. Fire type: [" + fireType +
-                            "], entity id: [" + processEntityId + "]. So ignore operation else."
+                "No Process mail configuration was found. Fire type: [" + fireType +
+                    "], entity id: [" + processEntityId + "]. So ignore operation else."
             );
 
             return;
         }
 
         try {
-            // 默认获取第一条配置信息
-            ProcessMailConfig config = mailConfigs.get(0);
-            // 加载预定义的类信息
-            Class cls = ClassUtils.getClass(config.getMailClass());
-            logger.debug("Class name: [{}].", cls.getName());
+            // 循环获取邮件配置信息
+            for (ProcessMailConfig config : mailConfigs) {
+                // 加载预定义的类信息
+                Class cls = ClassUtils.getClass(config.getMailClass());
+                logger.debug("Class name: [{}].", cls.getName());
 
-            if (!SendMailDelegate.class.isAssignableFrom(cls)) {
-                logger.warn(
+                if (!SendMailDelegate.class.isAssignableFrom(cls)) {
+                    logger.warn(
                         "The class isn't assignable from [" +
-                                SendMailDelegate.class.getName() + "], so ignore operation else."
-                );
+                            SendMailDelegate.class.getName() + "], so ignore operation else."
+                    );
 
-                return;
-            }
+                    return;
+                }
 
-            SendMailDelegate delegate;
+                SendMailDelegate delegate;
 
-            try {
-                // 实例化配置的类
-                delegate = (SendMailDelegate) BeanUtils.instantiateClass(cls);
-                delegate.sendMail(newTask, oldTask, comment, config.getFileKey());
-            } finally {
-                delegate = null;
+                try {
+                    // 实例化配置的类
+                    delegate = (SendMailDelegate) BeanUtils.instantiateClass(cls);
+                    delegate.sendMail(newTask, oldTask, comment, config.getFileKey());
+                } finally {
+                    delegate = null;
+                }
             }
         } catch (ClassNotFoundException e) {
             logger.error("Class is not found that configs in DB. Error msg: [{}].", e.getMessage());
