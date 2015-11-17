@@ -13,7 +13,9 @@ import com.googlecode.easyec.modules.bpmn2.query.UserTaskHistoricQuery;
 import com.googlecode.easyec.modules.bpmn2.query.UserTaskQuery;
 import com.googlecode.easyec.modules.bpmn2.service.QueryProcessService;
 import com.googlecode.easyec.spirit.dao.paging.Page;
+import com.googlecode.easyec.spirit.query.Query;
 import com.googlecode.easyec.spirit.service.EcService;
+import com.googlecode.easyec.spirit.web.controller.formbean.impl.AbstractSearchFormBean;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 
@@ -190,5 +192,15 @@ public class QueryProcessServiceImpl extends EcService implements QueryProcessSe
     @Override
     public Object getVariable(ProcessObject entity, String variableName) {
         return runtimeService.getVariable(entity.getProcessInstanceId(), variableName);
+    }
+
+    @Override
+    protected Map<String, Object> extractQuery(Query<?> query) {
+        AbstractSearchFormBean formBean = query.getSearchFormBean();
+        Map<String, Object> terms = formBean.getSearchTerms();
+        // 提取当前排序信息
+        terms.put("customOrderBy", formBean.encodeSorts());
+
+        return terms;
     }
 }

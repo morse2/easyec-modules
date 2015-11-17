@@ -172,7 +172,7 @@
         <include refid="Join_Admin_SQL"/>
         ${customJoinSQL}
         <include refid="Search_Conditions"/>
-        ${orderBy}
+        ${customOrderBy}
     </select>
 
     <select id="count" parameterType="hashmap" resultType="long">

@@ -240,7 +240,7 @@
             <include refid="Search_Conditions"/>
             <include refid="Task_Assignee_Search_Condition"/>
         </where>
-        ${orderBy}
+        ${customOrderBy}
     </select>
 
     <select id="countTasks" parameterType="hashmap" resultType="long">
@@ -271,7 +271,7 @@
             <include refid="Task_Assignee_Search_Condition"/>
             <include refid="Task_Consign_Search_Condition"/>
         </where>
-        ${orderBy}
+        ${customOrderBy}
     </select>
 
     <select id="countHistoricTasks" parameterType="hashmap" resultType="long">
@@ -327,7 +327,7 @@
         ) t_ on HIS.PROC_INST_ID_ = t_.PROC_INST_ID_
         and HIS.ID_ = t_.MAX_TASK_ID_
         and ENT.REQUEST_TIME is not null
-        ${orderBy}
+        ${customOrderBy}
     </select>
 
     <select id="countLastHistoricTasks" parameterType="hashmap" resultType="long">
