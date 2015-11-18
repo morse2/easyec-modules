@@ -1,5 +1,6 @@
 package com.googlecode.easyec.modules.bpmn2.domain.impl;
 
+import com.googlecode.easyec.modules.bpmn2.command.persistence.entity.CommentEntity;
 import com.googlecode.easyec.modules.bpmn2.domain.CommentObject;
 
 import java.nio.charset.Charset;
@@ -17,13 +18,16 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
  */
 public class CommentObjectImpl implements CommentObject {
 
+    private static final long serialVersionUID = 3360313375418760194L;
     private String id;
     private String userId;
     private String type;
     private Date createTime;
     private String taskRole;
     private String taskAction;
-    private byte[] fullMessage;
+
+    // fix bug for message's charset
+    private CommentEntity entity = new CommentEntity();
 
     @Override
     public String getId() {
@@ -37,12 +41,12 @@ public class CommentObjectImpl implements CommentObject {
 
     @Override
     public String getContent() {
-        return new String(fullMessage);
+        return getContent(null);
     }
 
     @Override
     public String getContent(Charset charset) {
-        return new String(getFullMessage(), charset);
+        return entity.getFullMessage();
     }
 
     @Override
@@ -102,11 +106,7 @@ public class CommentObjectImpl implements CommentObject {
         this.taskAction = taskAction;
     }
 
-    public byte[] getFullMessage() {
-        return fullMessage;
-    }
-
     public void setFullMessage(byte[] fullMessage) {
-        this.fullMessage = fullMessage;
+        entity.setFullMessageBytes(fullMessage);
     }
 }
