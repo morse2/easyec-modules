@@ -52,11 +52,11 @@ public class GrantServiceTicketRequestHandler extends CasServiceRequestHandler<S
         int code = response.getStatusLine().getStatusCode();
         logger.debug("Grant service ticket of status is: [{}].", code);
 
+        String s = getResponseContent(response);
         if (code != 200) {
             throw new InvalidTicketException("Invalid ticket: [" + tgt + "].");
         }
 
-        String s = getResponseContent(response);
         logger.debug("Response of granting service ticket: [{}].", s);
 
         return s;

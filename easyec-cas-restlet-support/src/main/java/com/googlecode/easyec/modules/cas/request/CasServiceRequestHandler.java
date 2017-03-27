@@ -2,16 +2,16 @@ package com.googlecode.easyec.modules.cas.request;
 
 import com.googlecode.easyec.modules.cas.ServiceProperties;
 import com.googlecode.easyec.spirit.web.httpcomponent.HttpRequestHandler;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.Charset;
 
 /**
  * CAS远程服务请求处理基类
@@ -39,8 +39,10 @@ public abstract class CasServiceRequestHandler<T> implements HttpRequestHandler<
      */
     protected String getResponseContent(HttpResponse response) {
         try {
-            InputStream in = response.getEntity().getContent();
-            return IOUtils.toString(in, "utf-8");
+            return EntityUtils.toString(
+                response.getEntity(),
+                Charset.forName("utf-8")
+            );
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

@@ -7,8 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.googlecode.easyec.spirit.web.utils.SpringContextUtils.autowireBeanProperties;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -31,7 +32,7 @@ public abstract class AbstractSendMailDelegate implements SendMailDelegate {
 
     @Override
     public void sendMail(TaskObject newTask, TaskObject oldTask, String comment, String fileKey)
-    throws MailingException {
+        throws MailingException {
 
         // 创建邮件对象实例
         MailObject mo = createMailObject(newTask, oldTask, comment, fileKey);
@@ -42,7 +43,7 @@ public abstract class AbstractSendMailDelegate implements SendMailDelegate {
             return;
         }
 
-        List<String> recipients = new ArrayList<String>();
+        Set<String> recipients = new HashSet<String>();
         // 获取处理人的邮件地址
         String assignee = newTask.getAssignee();
         if (isNotBlank(assignee)) {

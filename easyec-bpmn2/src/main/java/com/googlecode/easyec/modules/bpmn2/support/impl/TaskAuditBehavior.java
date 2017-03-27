@@ -22,6 +22,7 @@ public class TaskAuditBehavior extends CommentBehaviorAdapter {
     private boolean partialRejected;
     private boolean revoked;
     private boolean selfTask;
+    private boolean sendMail = true;
 
     private String status;
 
@@ -48,6 +49,10 @@ public class TaskAuditBehavior extends CommentBehaviorAdapter {
 
     public boolean isRevoked() {
         return revoked;
+    }
+
+    public boolean isSendMail() {
+        return sendMail;
     }
 
     public String getStatus() {
@@ -143,6 +148,11 @@ public class TaskAuditBehavior extends CommentBehaviorAdapter {
 
         public TaskAuditBehaviorBuilder localVariable(String name, Object value) {
             behavior.localVariables.put(name, value);
+            return this;
+        }
+
+        public TaskAuditBehaviorBuilder sendMail(boolean sendMail) {
+            behavior.sendMail = sendMail;
             return this;
         }
 

@@ -712,11 +712,14 @@ public final class ProcessOperateInterceptor implements Ordered {
             // 执行拒绝操作，这样任务即撤回给申请人
             userTaskService.rejectTask(task, behavior);
 
-            // 执行邮件发送
-            _loopTasksForSendingMail(
-                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
-                FIRE_TYPE_TASK_REVOKED, task, behavior.getComment()
-            );
+            /* 判断是否需要发送邮件 */
+            if (behavior.isSendMail()) {
+                // 执行邮件发送
+                _loopTasksForSendingMail(
+                    _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                    FIRE_TYPE_TASK_REVOKED, task, behavior.getComment()
+                );
+            }
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -730,11 +733,14 @@ public final class ProcessOperateInterceptor implements Ordered {
             // 审核拒绝当前任务
             userTaskService.rejectTask(task, behavior);
 
-            // 执行邮件发送
-            _loopTasksForSendingMail(
-                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
-                FIRE_TYPE_TASK_REJECTED, task, behavior.getComment()
-            );
+            /* 判断是否需要发送邮件 */
+            if (behavior.isSendMail()) {
+                // 执行邮件发送
+                _loopTasksForSendingMail(
+                    _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                    FIRE_TYPE_TASK_REJECTED, task, behavior.getComment()
+                );
+            }
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -748,11 +754,14 @@ public final class ProcessOperateInterceptor implements Ordered {
             // 审核通过当前的任务
             userTaskService.approveTask(task, behavior);
 
-            // 执行邮件发送
-            _loopTasksForSendingMail(
-                _findNextTasks(task.getProcessObject().getProcessInstanceId()),
-                FIRE_TYPE_TASK_ASSIGNED, task, behavior.getComment()
-            );
+            /* 判断是否需要发送邮件 */
+            if (behavior.isSendMail()) {
+                // 执行邮件发送
+                _loopTasksForSendingMail(
+                    _findNextTasks(task.getProcessObject().getProcessInstanceId()),
+                    FIRE_TYPE_TASK_ASSIGNED, task, behavior.getComment()
+                );
+            }
         } catch (ProcessPersistentException e) {
             logger.error(e.getMessage(), e);
 
@@ -785,6 +794,7 @@ public final class ProcessOperateInterceptor implements Ordered {
 
             // 执行委托任务的操作
             userTaskService.delegateTask(task, behavior.getUserId(), commentId);
+
             // 执行邮件发送
             _loopTasksForSendingMail(
                 _findNextTasks(task.getProcessObject().getProcessInstanceId()),

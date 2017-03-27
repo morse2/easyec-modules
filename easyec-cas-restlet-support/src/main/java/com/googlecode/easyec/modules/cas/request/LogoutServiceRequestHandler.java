@@ -4,6 +4,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -29,6 +30,8 @@ public class LogoutServiceRequestHandler extends CasServiceRequestHandler<Void> 
     protected Void doInResponse(HttpResponse response) {
         int code = response.getStatusLine().getStatusCode();
         logger.debug("Logout service' response is: [{}].", code);
+
+        EntityUtils.consumeQuietly(response.getEntity());
 
         return null;
     }

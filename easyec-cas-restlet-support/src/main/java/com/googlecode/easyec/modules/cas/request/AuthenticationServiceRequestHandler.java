@@ -60,11 +60,11 @@ public class AuthenticationServiceRequestHandler extends CasServiceRequestHandle
         int code = response.getStatusLine().getStatusCode();
         logger.debug("Response code for authentication is: [{}].", code);
 
+        String s = getResponseContent(response);
         if (code != 201) {
             throw new AuthenticationException("Authentication is failed.");
         }
 
-        String s = getResponseContent(response);
         if (isBlank(s)) throw new AuthenticationException("No response content was found.");
 
         try {
