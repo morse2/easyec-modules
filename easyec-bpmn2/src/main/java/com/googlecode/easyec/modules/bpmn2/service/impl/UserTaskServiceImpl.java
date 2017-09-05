@@ -207,9 +207,8 @@ public class UserTaskServiceImpl implements UserTaskService {
                 int i = extraTaskObjectDao.insert(o);
                 logger.debug("Effect rows of inserting BPM_HI_TASK_EXTRA. [{}].", i);
             } catch (Exception e) {
-                logger.error(e.getMessage());
-
-                throw new ProcessPersistentException(e);
+                logger.warn(e.getMessage());
+                // 只打印错误日志，不抛出异常
             }
         }
     }
@@ -572,7 +571,8 @@ public class UserTaskServiceImpl implements UserTaskService {
 
             if (!b) {
                 logger.debug("Task shouldn't be approved by system. Process key: [{}], task key: [{}]",
-                    po.getProcessDefinitionKey(), task.getTaskDefinitionKey());
+                             po.getProcessDefinitionKey(), task.getTaskDefinitionKey()
+                );
 
                 continue;
             }

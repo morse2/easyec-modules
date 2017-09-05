@@ -4,7 +4,7 @@
 
     <groupId>com.googlecode.easyec</groupId>
     <artifactId>easyec-modules</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.1-SNAPSHOT</version>
     <modules>
         <module>easyec-bpmn2</module>
         <module>easyec-cas-restlet-support</module>
@@ -40,14 +40,14 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <id>dm_3</id>
+            <name>Maven Snapshot Repository for Tuogo</name>
+            <url>http://dev.tuogo.com.cn/nexus3/repository/maven-snapshots/</url>
         </snapshotRepository>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>dm_3</id>
+            <name>Maven Release Repository for Tuogo</name>
+            <url>http://dev.tuogo.com.cn/nexus3/repository/maven-releases/</url>
         </repository>
     </distributionManagement>
 
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>3.2.8.RELEASE</version>
+            <version>3.2.18.RELEASE</version>
             <scope>test</scope>
         </dependency>
 
