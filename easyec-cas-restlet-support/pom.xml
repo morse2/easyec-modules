@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.googlecode.easyec</groupId>
             <artifactId>spirit-web</artifactId>
-            <version>0.5.3-SNAPSHOT</version>
+            <version>0.5.4.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
