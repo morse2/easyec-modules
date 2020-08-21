@@ -4,7 +4,7 @@
 
     <groupId>com.googlecode.easyec</groupId>
     <artifactId>easyec-modules</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.1-SNAPSHOT</version>
     <modules>
         <module>easyec-bpmn2</module>
         <module>easyec-cas-restlet-support</module>
@@ -38,16 +38,29 @@
         </developer>
     </developers>
 
+    <repositories>
+        <repository>
+            <id>public</id>
+            <releases>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+            <url>http://mvnrepository.tuogo.com.cn/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
     <distributionManagement>
         <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <id>dm_3</id>
+            <name>Maven Snapshot Repository for Tuogo</name>
+            <url>http://mvnrepository.tuogo.com.cn/repository/maven-snapshots/</url>
         </snapshotRepository>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>dm_3</id>
+            <name>Maven Release Repository for Tuogo</name>
+            <url>http://mvnrepository.tuogo.com.cn/repository/maven-releases/</url>
         </repository>
     </distributionManagement>
 
